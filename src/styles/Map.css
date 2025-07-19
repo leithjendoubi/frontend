@@ -1,0 +1,34 @@
+.map-container {
+  display: flex;
+  height: 100vh;
+  width: 100%;
+}
+
+.map-left {
+  flex: 2;
+}
+
+.map-right {
+  flex: 1;
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-left: 1px solid #ddd;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.map-right h2 {
+  margin-bottom: 10px;
+}
+
+.map-right button {
+  margin-top: 20px;
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
