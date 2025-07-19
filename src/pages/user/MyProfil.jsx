@@ -2,6 +2,7 @@ import React, { useState, useContext, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { AppContext } from '../../context/AppContext';
+import { API_URL } from '../../config/api.js';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
@@ -34,7 +35,7 @@ const MyProfil = () => {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const response = await axios.get(`http://localhost:4000/api/order/user/${userData.userId}`);
+        const response = await axios.get(`${API_URL}/api/order/user/${userData.userId}`);
         setOrders(response.data);
       } catch (err) {
         console.error('Error fetching orders:', err);
@@ -53,7 +54,7 @@ const MyProfil = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await axios.get(`http://localhost:4000/api/product/user/my-products`);
+        const response = await axios.get(`${API_URL}/api/product/user/my-products`);
         if (response.data.success && Array.isArray(response.data.products)) {
           setProducts(response.data.products);
         } else {
@@ -77,7 +78,7 @@ const MyProfil = () => {
 
       try {
         const offerPromises = orders.map(order =>
-          axios.get(`http://localhost:4000/api/offre/offres/order/${order._id}`)
+          axios.get(`${API_URL}/api/offre/offres/order/${order._id}`)
             .then(res => ({ orderId: order._id, data: res.data.offres?.[0] || null }))
             .catch(err => ({ orderId: order._id, data: null }))
         );
@@ -104,7 +105,7 @@ const MyProfil = () => {
       if (!userData?.userId) return;
       
       try {
-        const response = await axios.get('http://localhost:4000/api/order/get');
+        const response = await axios.get(`${API_URL}/api/order/get`);
         const allOrders = response.data;
 
         // Filter orders containing products owned by current user and with status "Order Placed"
@@ -113,7 +114,7 @@ const MyProfil = () => {
           if (order.status === 'Order Placed') {
             for (const item of order.items) {
               try {
-                const productResponse = await axios.get(`http://localhost:4000/api/product/${item.productId}`);
+                const productResponse = await axios.get(`${API_URL}/api/product/${item.productId}`);
                 if (productResponse.data.success && productResponse.data.product.userId === userData.userId) {
                   filteredOrders.push(order);
                   break;
@@ -140,7 +141,7 @@ const MyProfil = () => {
 
   const handleConfirmOrder = async (orderId) => {
     try {
-      await axios.put(`http://localhost:4000/api/order/update-status/${orderId}`, {
+      await axios.put(`${API_URL}/api/order/update-status/${orderId}`, {
         status: 'Confirmed and Prepared'
       });
       setProducerOrders(producerOrders.filter(order => order._id !== orderId));
@@ -152,7 +153,7 @@ const MyProfil = () => {
 
   const handleDeleteProduct = async (productId) => {
     try {
-      await axios.delete(`http://localhost:4000/api/product/delete/${productId}`);
+      await axios.delete(`${API_URL}/api/product/delete/${productId}`);
       setProducts(products.filter(product => product._id !== productId));
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
@@ -185,7 +186,7 @@ const MyProfil = () => {
 
     try {
       const response = await axios.post(
-        `http://localhost:4000/api/auth/${userData.userId}/photo`,
+        `${API_URL}/api/auth/${userData.userId}/photo`,
         formData,
         {
           headers: {
@@ -209,7 +210,7 @@ const MyProfil = () => {
 
   const handleRoleChange = async (roleType) => {
     try {
-      const response = await axios.post(`http://localhost:4000/api/auth/change-role`, {
+      const response = await axios.post(`${API_URL}/api/auth/change-role`, {
         userId: userData.userId,
         roleType
       });
@@ -247,7 +248,7 @@ const MyProfil = () => {
 
   const handleUpdateOfferStatus = async (ordreId, status) => {
     try {
-      const response = await axios.put(`http://localhost:4000/api/offre/offres/order/${ordreId}`, {
+      const response = await axios.put(`${API_URL}/api/offre/offres/order/${ordreId}`, {
         statutoffre: status
       });
 

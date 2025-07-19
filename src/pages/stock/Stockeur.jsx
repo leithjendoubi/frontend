@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Box, Typography, CircularProgress, Card, CardContent, Grid, Link, List, ListItem, ListItemText, Divider } from '@mui/material';
 import { toast } from 'react-toastify';
+import { API_URL } from '../../config/api.js';
 
 const Stockeur = () => {
   const [userId, setUserId] = useState('');
@@ -15,7 +16,7 @@ const Stockeur = () => {
   useEffect(() => {
     const fetchAndSetUserId = async () => {
       try {
-        const response = await axios.get('http://localhost:4000/api/user/data');
+        const response = await axios.get(`${API_URL}/api/user/data`);
         if (response.data.success && response.data.userData && response.data.userData.userId) {
           setUserId(response.data.userData.userId);
           setError(null);
@@ -47,16 +48,16 @@ const Stockeur = () => {
 
       try {
         // Fetch Stockiste Details
-        const stockisteResponse = await axios.get(`http://localhost:4000/api/stockiste/user/${userId}`);
+        const stockisteResponse = await axios.get(`${API_URL}/api/stockiste/user/${userId}`);
         setStockisteDetails(stockisteResponse.data.stockiste);
 
         // Fetch Equipements
-        const equipementResponse = await axios.get(`http://localhost:4000/api/equipement/user/${userId}`);
+        const equipementResponse = await axios.get(`${API_URL}/api/equipement/user/${userId}`);
         // Ensure equipements is an array, default to empty array if undefined
         setEquipements(Array.isArray(equipementResponse.data.equipements) ? equipementResponse.data.equipements : []);
 
         // Fetch Demands
-        const demandsResponse = await axios.get(`http://localhost:4000/api/stock/stockeur/${userId}`);
+        const demandsResponse = await axios.get(`${API_URL}/api/stock/stockeur/${userId}`);
         setDemands(Array.isArray(demandsResponse.data.demands) ? demandsResponse.data.demands : []);
 
       } catch (err) {

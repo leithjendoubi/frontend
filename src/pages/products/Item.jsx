@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useContext } from 'react';
 import { AppContext } from '../../context/AppContext';
+import { API_URL } from '../../config/api.js';
 import tunisianFlag from '../../assets/tunisianflag.jpg';
 
 const Item = () => {
@@ -20,7 +21,7 @@ const Item = () => {
     const fetchData = async () => {
       try {
         // 1. Fetch product data
-        const productRes = await axios.get(`http://localhost:4000/api/product/${id}`);
+        const productRes = await axios.get(`${API_URL}/api/product/${id}`);
         setProduct(productRes.data.product);
         
         // Set default size if available
@@ -30,13 +31,13 @@ const Item = () => {
 
         // 2. Fetch producer data
         const producerRes = await axios.get(
-          `http://localhost:4000/api/producteur/data/${productRes.data.product.userId}`
+          `${API_URL}/api/producteur/data/${productRes.data.product.userId}`
         );
         setProducer(producerRes.data);
 
         // 3. Fetch producer image (using POST with body)
         const imageRes = await axios.get(
-          'http://localhost:4000/api/user/userdata',
+          `${API_URL}/api/user/userdata`,
           { userId: productRes.data.product.userId }
         );
         setProducerImage(imageRes.data.image);
@@ -67,7 +68,7 @@ const Item = () => {
       const method = isUpdate ? 'put' : 'post';
 
       const response = await axios[method](
-        `http://localhost:4000${endpoint}`,
+        `${API_URL}${endpoint}`,
         {
           userId: userData.userId,
           itemId: product._id,

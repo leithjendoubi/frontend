@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
+import { API_URL } from '../../config/api.js';
 
 const Market = () => {
   const [markets, setMarkets] = useState([]);
@@ -15,7 +16,7 @@ const Market = () => {
     const fetchMarkets = async () => {
       setLoading(true);
       try {
-        const response = await axios.get('http://localhost:4000/api/marche/');
+        const response = await axios.get(`${API_URL}/api/marche/`);
         setMarkets(Array.isArray(response.data) ? response.data : []);
         setLoading(false);
       } catch (err) {
@@ -32,7 +33,7 @@ const Market = () => {
     setProductsLoading(true);
     setProductsError(null);
     try {
-      const response = await axios.get('http://localhost:4000/api/product/');
+      const response = await axios.get(`${API_URL}/api/product/`);
       const filteredProducts = response.data.products.filter(
         (product) => product.marcheID === marcheId
       );

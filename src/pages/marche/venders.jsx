@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { API_URL } from '../../config/api.js';
 
 const VendeurList = () => {
   const [vendeurs, setVendeurs] = useState([]);
@@ -10,7 +11,7 @@ const VendeurList = () => {
     const fetchVendeurs = async () => {
       try {
         // Fetch vendeurs data
-        const response = await fetch('http://localhost:4000/api/vendeur/demandsaccepted');
+        const response = await fetch(`${API_URL}/api/vendeur/demandsaccepted`);
         if (!response.ok) {
           throw new Error('Failed to fetch vendeurs');
         }
@@ -23,7 +24,7 @@ const VendeurList = () => {
           const userDataPromises = data.map(async (vendeur) => {
             try {
               const userResponse = await fetch(
-                `http://localhost:4000/api/user/userdata/${vendeur.userId}`
+                `${API_URL}/api/user/userdata/${vendeur.userId}`
               );
               
               if (!userResponse.ok) {

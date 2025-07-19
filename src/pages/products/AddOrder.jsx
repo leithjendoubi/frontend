@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { AppContext } from '../../context/AppContext';
+import { API_URL } from '../../config/api.js';
 
 const AddOrder = () => {
   const { userData } = useContext(AppContext);
@@ -54,7 +55,7 @@ const AddOrder = () => {
     const fetchCartData = async () => {
       try {
         const cartResponse = await axios.post(
-          'http://localhost:4000/api/cart/get',
+          `${API_URL}/api/cart/get`,
           { userId: userData.userId },
           { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
         );
@@ -65,7 +66,7 @@ const AddOrder = () => {
         const productIds = Object.keys(cartData);
         const productPromises = productIds.map(async (productId) => {
           try {
-            const response = await axios.get(`http://localhost:4000/api/product/${productId}`);
+            const response = await axios.get(`${API_URL}/api/product/${productId}`);
             return response.data.product;
           } catch (err) {
             console.error(`Error fetching product ${productId}:`, err);
@@ -147,15 +148,15 @@ const AddOrder = () => {
         paymentMethod: formData.paymentMethod,
       };
 
-      const response = await axios.post(
-        'http://localhost:4000/api/order/add',
+              const response = await axios.post(
+          `${API_URL}/api/order/add`,
         orderData,
         { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
       );
 
       if (response.data.success) {
         await axios.post(
-          'http://localhost:4000/api/cart/delete-cart',
+          `${API_URL}/api/cart/delete-cart`,
           { userId: userData.userId },
         );
         navigate(`/marche`);

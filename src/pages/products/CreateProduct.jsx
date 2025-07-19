@@ -3,11 +3,12 @@ import axios from "axios";
 import { AppContext } from "../../context/AppContext";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
+import { API_URL } from "../../config/api.js";
 
 const CreateProduct = () => {
   const { userData, getUserData } = useContext(AppContext);
   const navigate = useNavigate();
-  const backendUrl = "http://localhost:4000";
+  const backendUrl = API_URL;
 
   const [productData, setProductData] = useState({
     name: "",

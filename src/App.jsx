@@ -29,7 +29,8 @@ import Showproducer from "./pages/map/showproducers";
 
 
 import ShowOrderToDeliver from "./pages/livraison/showordertodeliever";
-export const backendUrl = import.meta.env.VITE_BACKEND_URL;
+import { API_URL } from "./config/api.js";
+export const backendUrl = API_URL;
 
 const App = () => {
   return (

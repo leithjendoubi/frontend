@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import axios from 'axios';
+import { API_URL } from '../../config/api.js';
 
 const CreateEquipement = () => {
   const [formData, setFormData] = useState({
@@ -39,7 +40,7 @@ const CreateEquipement = () => {
     }
 
     try {
-      const response = await axios.post('http://localhost:4000/api/equipement/create', data, {
+      const response = await axios.post(`${API_URL}/api/equipement/create`, data, {
         headers: {
           'Content-Type': 'multipart/form-data',
           // Add Authorization header if userAuth middleware requires it
