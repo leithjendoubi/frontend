@@ -12,7 +12,48 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Responsive utilities */
+@layer utilities {
+  .text-responsive-xs {
+    font-size: clamp(0.75rem, 2vw, 0.875rem);
+  }
+  
+  .text-responsive-sm {
+    font-size: clamp(0.875rem, 2.5vw, 1rem);
+  }
+  
+  .text-responsive-base {
+    font-size: clamp(1rem, 3vw, 1.125rem);
+  }
+  
+  .text-responsive-lg {
+    font-size: clamp(1.125rem, 3.5vw, 1.25rem);
+  }
+  
+  .text-responsive-xl {
+    font-size: clamp(1.25rem, 4vw, 1.5rem);
+  }
+  
+  .text-responsive-2xl {
+    font-size: clamp(1.5rem, 5vw, 2rem);
+  }
+  
+  .text-responsive-3xl {
+    font-size: clamp(2rem, 6vw, 3rem);
+  }
+}
 
+/* Touch-friendly improvements */
+@media (max-width: 768px) {
+  button, a, [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  input, select, textarea {
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
+}
 
 /* From Uiverse.io by kamehame-ha */
 .coolinput {
@@ -77,6 +118,26 @@ html {
 .submit-btn:hover {
   background-color: #6b75d6;
 }
+
+/* Responsive button styles */
+@media (max-width: 640px) {
+  .coolinput {
+    max-width: 100%;
+  }
+  
+  .coolinput input[type=text].input,
+  .coolinput select.input {
+    padding: 12px 10px;
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
+  
+  .submit-btn {
+    padding: 12px 20px;
+    font-size: 16px;
+    width: 100%;
+  }
+}
+
 body {
   font-family: 'Cairo', sans-serif;
 }
@@ -85,6 +146,42 @@ body {
   font-family: 'Cairo', sans-serif;
   font-weight: 700;
   direction: rtl;
+}
+
+/* Mobile-specific improvements */
+@media (max-width: 768px) {
+  .arabic-text {
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  
+  /* Improve touch targets */
+  .coolinput label.text {
+    font-size: 14px;
+  }
+}
+
+/* Prevent horizontal scroll on mobile */
+@media (max-width: 640px) {
+  body {
+    overflow-x: hidden;
+  }
+  
+  .app-container {
+    overflow-x: hidden;
+  }
+}
+
+/* Smooth scrolling for anchor links */
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 80px; /* Account for fixed navbar */
+}
+
+@media (max-width: 768px) {
+  html {
+    scroll-padding-top: 60px; /* Smaller padding for mobile */
+  }
 }
 
 

@@ -1,16 +1,16 @@
 import axios from "axios";
 import { createContext, useEffect, useState } from "react";
 import { toast } from "react-toastify";
-import { API_URL } from "../config/api.js";
 
 export const AppContext = createContext();
 
 export const AppContextProvider = (props) => {
   axios.defaults.withCredentials = true;
 
-  const backendUrl = API_URL;
+  const backendUrl = import.meta.env.VITE_BACKEND_URL;
   const [isLoggedin, setIsLoggedin] = useState(false);
   const [userData, setUserData] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const getAuthState = async () => {
     try {
@@ -20,16 +20,33 @@ export const AppContextProvider = (props) => {
         getUserData();
       }
     } catch (error) {
-      toast.error(error.message);
+      // 401 is expected when user is not logged in, don't show error
+      if (error.response && error.response.status === 401) {
+        setIsLoggedin(false);
+        setUserData(false);
+      } else {
+        // Only show error for unexpected errors
+        console.error('Auth check error:', error);
+        toast.error("Error checking authentication status");
+      }
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const getUserData = async () => {
     try {
       const { data } = await axios.get(backendUrl + "/api/user/data");
-      data.success ? setUserData(data.userData) : toast.error(data.message);
+      if (data.success) {
+        setUserData(data.userData);
+      } else {
+        toast.error(data.message);
+        setIsLoggedin(false);
+      }
     } catch (error) {
-      toast.error(error.message);
+      console.error('Get user data error:', error);
+      toast.error("Error fetching user data");
+      setIsLoggedin(false);
     }
   };
 
@@ -44,6 +61,7 @@ export const AppContextProvider = (props) => {
     userData,
     setUserData,
     getUserData,
+    isLoading,
   };
 
   return (

@@ -2,7 +2,6 @@ import React, { useState, useContext, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { AppContext } from '../../context/AppContext';
-import { API_URL } from '../../config/api.js';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
@@ -31,15 +30,15 @@ const MyProfil = () => {
   const [products, setProducts] = useState([]);
   const [productsLoading, setProductsLoading] = useState(true);
 
-  // Fetch user orders
+  // جلب طلبات المستخدم
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const response = await axios.get(`${API_URL}/api/order/user/${userData.userId}`);
+        const response = await axios.get(`http://localhost:4000/api/order/user/${userData.userId}`);
         setOrders(response.data);
       } catch (err) {
-        console.error('Error fetching orders:', err);
-        setError(err.response?.data?.message || 'Failed to fetch orders');
+        console.error('خطأ في جلب الطلبات:', err);
+        setError(err.response?.data?.message || 'فشل في جلب الطلبات');
       } finally {
         setOrdersLoading(false);
       }
@@ -50,19 +49,19 @@ const MyProfil = () => {
     }
   }, [userData?.userId]);
 
-  // Fetch user products
+  // جلب منتجات المستخدم
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await axios.get(`${API_URL}/api/product/user/my-products`);
+        const response = await axios.get(`http://localhost:4000/api/product/user/my-products`);
         if (response.data.success && Array.isArray(response.data.products)) {
           setProducts(response.data.products);
         } else {
           setProducts([]);
         }
       } catch (err) {
-        console.error('Error fetching products:', err);
-        setError(err.response?.data?.message || 'Failed to fetch products');
+        console.error('خطأ في جلب المنتجات:', err);
+        setError(err.response?.data?.message || 'فشل في جلب المنتجات');
       } finally {
         setProductsLoading(false);
       }
@@ -71,14 +70,14 @@ const MyProfil = () => {
     fetchProducts();
   }, []);
 
-  // Fetch offers for each order
+  // جلب العروض لكل طلب
   useEffect(() => {
     const fetchOffers = async () => {
       if (!userData?.userId || !orders.length) return;
 
       try {
         const offerPromises = orders.map(order =>
-          axios.get(`${API_URL}/api/offre/offres/order/${order._id}`)
+          axios.get(`http://localhost:4000/api/offre/offres/order/${order._id}`)
             .then(res => ({ orderId: order._id, data: res.data.offres?.[0] || null }))
             .catch(err => ({ orderId: order._id, data: null }))
         );
@@ -89,8 +88,8 @@ const MyProfil = () => {
         }, {});
         setOffers(offerMap);
       } catch (err) {
-        console.error('Error fetching offers:', err);
-        setError(err.response?.data?.message || 'Failed to fetch offers');
+        console.error('خطأ في جلب العروض:', err);
+        setError(err.response?.data?.message || 'فشل في جلب العروض');
       }
     };
 
@@ -99,36 +98,36 @@ const MyProfil = () => {
     }
   }, [orders, userData?.userId]);
 
-  // Fetch orders containing products owned by the current user with status "Order Placed"
+  // جلب الطلبات التي تحتوي على منتجات يملكها المستخدم الحالي بحالة "تم الطلب"
   useEffect(() => {
     const fetchProducerOrders = async () => {
       if (!userData?.userId) return;
       
       try {
-        const response = await axios.get(`${API_URL}/api/order/get`);
+        const response = await axios.get('http://localhost:4000/api/order/get');
         const allOrders = response.data;
 
-        // Filter orders containing products owned by current user and with status "Order Placed"
+        // تصفية الطلبات التي تحتوي على منتجات يملكها المستخدم الحالي وبحالة "تم الطلب"
         const filteredOrders = [];
         for (const order of allOrders) {
           if (order.status === 'Order Placed') {
             for (const item of order.items) {
               try {
-                const productResponse = await axios.get(`${API_URL}/api/product/${item.productId}`);
+                const productResponse = await axios.get(`http://localhost:4000/api/product/${item.productId}`);
                 if (productResponse.data.success && productResponse.data.product.userId === userData.userId) {
                   filteredOrders.push(order);
                   break;
                 }
               } catch (err) {
-                console.error(`Error fetching product ${item.productId}:`, err);
+                console.error(`خطأ في جلب المنتج ${item.productId}:`, err);
               }
             }
           }
         }
         setProducerOrders(filteredOrders);
       } catch (err) {
-        console.error('Error fetching producer orders:', err);
-        setError(err.response?.data?.message || 'Failed to fetch orders');
+        console.error('خطأ في جلب طلبات المنتج:', err);
+        setError(err.response?.data?.message || 'فشل في جلب الطلبات');
       } finally {
         setProducerOrdersLoading(false);
       }
@@ -141,25 +140,25 @@ const MyProfil = () => {
 
   const handleConfirmOrder = async (orderId) => {
     try {
-      await axios.put(`${API_URL}/api/order/update-status/${orderId}`, {
+      await axios.put(`http://localhost:4000/api/order/update-status/${orderId}`, {
         status: 'Confirmed and Prepared'
       });
       setProducerOrders(producerOrders.filter(order => order._id !== orderId));
     } catch (err) {
-      console.error('Error updating order status:', err);
-      setError(err.response?.data?.message || 'Failed to update order status');
+      console.error('خطأ في تحديث حالة الطلب:', err);
+      setError(err.response?.data?.message || 'فشل في تحديث حالة الطلب');
     }
   };
 
   const handleDeleteProduct = async (productId) => {
     try {
-      await axios.delete(`${API_URL}/api/product/delete/${productId}`);
+      await axios.delete(`http://localhost:4000/api/product/delete/${productId}`);
       setProducts(products.filter(product => product._id !== productId));
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
     } catch (err) {
-      console.error('Error deleting product:', err);
-      setError(err.response?.data?.message || 'Failed to delete product');
+      console.error('خطأ في حذف المنتج:', err);
+      setError(err.response?.data?.message || 'فشل في حذف المنتج');
     }
   };
 
@@ -168,12 +167,12 @@ const MyProfil = () => {
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-      setError('Please upload an image file');
+      setError('الرجاء تحميل ملف صورة');
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      setError('File size must be less than 5MB');
+      setError('يجب أن يكون حجم الملف أقل من 5MB');
       return;
     }
 
@@ -186,7 +185,7 @@ const MyProfil = () => {
 
     try {
       const response = await axios.post(
-        `${API_URL}/api/auth/${userData.userId}/photo`,
+        `http://localhost:4000/api/auth/${userData.userId}/photo`,
         formData,
         {
           headers: {
@@ -202,7 +201,7 @@ const MyProfil = () => {
 
       setSuccess(true);
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to upload photo');
+      setError(err.response?.data?.message || 'فشل في تحميل الصورة');
     } finally {
       setLoading(false);
     }
@@ -210,7 +209,7 @@ const MyProfil = () => {
 
   const handleRoleChange = async (roleType) => {
     try {
-      const response = await axios.post(`${API_URL}/api/auth/change-role`, {
+      const response = await axios.post(`http://localhost:4000/api/auth/change-role`, {
         userId: userData.userId,
         roleType
       });
@@ -222,7 +221,7 @@ const MyProfil = () => {
         isProducteur: response.data.isProducteur
       });
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to change role');
+      setError(err.response?.data?.message || 'فشل في تغيير الدور');
     }
   };
 
@@ -248,7 +247,7 @@ const MyProfil = () => {
 
   const handleUpdateOfferStatus = async (ordreId, status) => {
     try {
-      const response = await axios.put(`${API_URL}/api/offre/offres/order/${ordreId}`, {
+      const response = await axios.put(`http://localhost:4000/api/offre/offres/order/${ordreId}`, {
         statutoffre: status
       });
 
@@ -260,40 +259,40 @@ const MyProfil = () => {
         setShowOfferDialog(false);
         setSelectedOffer(null);
       } else {
-        setError(response.data.message || 'Failed to update offer status');
+        setError(response.data.message || 'فشل في تحديث حالة العرض');
       }
     } catch (err) {
-      console.error('Error updating offer status:', err);
-      setError(err.response?.data?.message || 'Failed to update offer status');
+      console.error('خطأ في تحديث حالة العرض:', err);
+      setError(err.response?.data?.message || 'فشل في تحديث حالة العرض');
     }
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-8 mt-16">
-        <h1 className="text-3xl font-bold text-navy-900 mb-8 text-center">My Profile</h1>
+        <h1 className="text-3xl font-bold text-navy-900 mb-8 arabic-text text-center">ملفي الشخصي</h1>
 
-        {/* Vertical Layout */}
+        {/* التنسيق العمودي */}
         <div className="flex flex-col space-y-6">
-          {/* Profile Card */}
+          {/* بطاقة الملف الشخصي */}
           <div className="bg-white rounded-xl shadow-lg p-6">
             <div className="flex flex-col items-center mb-6">
               <div className="relative mb-4">
                 {userData.image ? (
                   <img
                     src={userData.image}
-                    alt="Profile"
+                    alt="صورة الملف الشخصي"
                     className="w-32 h-32 rounded-full object-cover border-4 border-light-blue-100"
                   />
                 ) : (
                   <div className="w-32 h-32 rounded-full bg-light-blue-50 flex items-center justify-center">
-                    <span className="text-navy-500 text-sm">No photo</span>
+                    <span className="text-navy-500 text-sm">لا توجد صورة</span>
                   </div>
                 )}
               </div>
 
-              <label className="cursor-pointer bg-light-blue-500 text-white px-4 py-2 rounded-lg hover:bg-light-blue-600 transition text-sm font-medium">
-                {loading ? 'Uploading...' : 'Change Photo'}
+              <label className="cursor-pointer bg-light-blue-500 arabic-text text-white px-4 py-2 rounded-lg hover:bg-light-blue-600 transition text-sm font-medium">
+                {loading ? 'جاري التحميل...' : 'تغيير الصورة'}
                 <input
                   type="file"
                   accept="image/*"
@@ -303,30 +302,30 @@ const MyProfil = () => {
                 />
               </label>
 
-              <p className="text-xs text-navy-500 mt-2">JPG, PNG (Max 5MB)</p>
-                             <MapButton />
+              <p className="text-xs text-navy-500 mt-2">JPG, PNG (الحد الأقصى 5MB)</p>
+              <MapButton />
             </div>
             <div className="mb-6">
-              <h3 className="font-semibold text-navy-900 mb-2">Current Status:</h3>
+              <h3 className="font-semibold arabic-text text-navy-900 mb-2">الحالة الحالية:</h3>
               <div className="flex flex-wrap gap-2">
                 {userData.isLivreur && (
-                  <span className="bg-light-blue-100 text-light-blue-800 px-3 py-1 rounded-full text-xs font-medium">
-                    Delivery Person
+                  <span className="bg-light-blue-100 arabic-text text-light-blue-800 px-3 py-1 rounded-full text-xs font-medium">
+                    موزع
                   </span>
                 )}
                 {userData.isVendeur && (
                   <span className="bg-navy-100 text-navy-800 px-3 py-1 rounded-full text-xs font-medium">
-                    Seller
+                    بائع
                   </span>
                 )}
                 {userData.isProducteur && (
                   <span className="bg-white border border-light-blue-500 text-light-blue-500 px-3 py-1 rounded-full text-xs font-medium">
-                    Producer
+                    منتج
                   </span>
                 )}
                 {!userData.isLivreur && !userData.isVendeur && !userData.isProducteur && (
-                  <span className="bg-gray-100 text-navy-800 px-3 py-1 rounded-full text-xs font-medium">
-                    Client
+                  <span className="bg-gray-100 arabic-text text-navy-800 px-3 py-1 rounded-full text-xs font-medium">
+                    عميل
                   </span>
                 )}
               </div>
@@ -334,57 +333,51 @@ const MyProfil = () => {
 
             {!(userData.isLivreur || userData.isVendeur || userData.isProducteur) ? (
               <div className="space-y-3 mb-6">
-                <h3 className="font-semibold text-navy-900">Become a:</h3>
+                <h3 className="font-semibold arabic-text text-navy-900">كن:</h3>
                 <button
                   onClick={() => navigate("/addlivreur")}
-                  className="w-full bg-light-blue-500 text-white py-2 rounded-lg hover:bg-light-blue-600 transition text-sm font-medium"
+                  className="w-full bg-light-blue-500 arabic-text text-white py-2 rounded-lg hover:bg-light-blue-600 transition text-sm font-medium"
                 >
-                  Delivery Person
+                  موزع
                 </button>
                 <button
                   onClick={() => navigate("/demandproducteur")}
-                  className="w-full bg-navy-500 text-white py-2 rounded-lg hover:bg-navy-600 transition text-sm font-medium"
+                  className="w-full bg-navy-500 arabic-text text-white py-2 rounded-lg hover:bg-navy-600 transition text-sm font-medium"
                 >
-                  Producer
+                  منتج
                 </button>
                 <button
                   onClick={() => navigate("/demandvendeur")}
-                  className="w-full bg-light-blue-700 text-white py-2 rounded-lg hover:bg-light-blue-800 transition text-sm font-medium"
+                  className="w-full bg-light-blue-700 arabic-text text-white py-2 rounded-lg hover:bg-light-blue-800 transition text-sm font-medium"
                 >
-                  Seller
+                  بائع
                 </button>
                 <button
                   onClick={() => navigate("/CreateProduct")}
-                  className="w-full bg-navy-700 text-white py-2 rounded-lg hover:bg-navy-800 transition text-sm font-medium"
+                  className="w-full bg-navy-700 arabic-text text-white py-2 rounded-lg hover:bg-navy-800 transition text-sm font-medium"
                 >
-                  Add Product
+                  إضافة منتج
                 </button>
               </div>
             ) : (
               <div className="space-y-3 mb-6">
                 <button
-                  onClick={() => handleRoleChange('client')}
-                  className="w-full bg-gray-500 text-white py-2 rounded-lg hover:bg-gray-600 transition text-sm font-medium"
-                >
-                  Return to Client Status
-                </button>
-                <button
                   onClick={() => navigate("/CreateProduct")}
                   className="w-full bg-navy-700 text-white py-2 rounded-lg hover:bg-navy-800 transition text-sm font-medium"
                 >
-                  Add Product
+                  إضافة منتج
                 </button>
               </div>
             )}
 
             <div className="space-y-4">
               <div>
-                <label className="block text-navy-700 text-sm font-medium mb-1">Name</label>
-                <p className="p-2 bg-light-blue-50 rounded text-navy-900">{userData?.name || 'Not available'}</p>
+                <label className="block text-navy-700 arabic-text text-sm font-medium mb-1">الاسم</label>
+                <p className="p-2 bg-light-blue-50 rounded text-navy-900">{userData?.name || 'غير متاح'}</p>
               </div>
               <div>
-                <label className="block text-navy-700 text-sm font-medium mb-1">Email</label>
-                <p className="p-2 bg-light-blue-50 rounded text-navy-900">{userData?.email || 'Not available'}</p>
+                <label className="block text-navy-700 arabic-text text-sm font-medium mb-1">البريد الإلكتروني</label>
+                <p className="p-2 bg-light-blue-50 rounded text-navy-900">{userData?.email || 'غير متاح'}</p>
               </div>
             </div>
 
@@ -395,25 +388,25 @@ const MyProfil = () => {
             )}
 
             {success && (
-              <div className="mt-4 p-3 bg-light-blue-100 text-light-blue-800 rounded-lg text-sm">
-                Action completed successfully!
+              <div className="mt-4 p-3 bg-light-blue-100 arabic-text text-light-blue-800 rounded-lg text-sm">
+                تم تنفيذ الإجراء بنجاح!
               </div>
             )}
           </div>
 
-          {/* Orders for My Products */}
+          {/* طلبات لمنتجاتي */}
           {producerOrders.length > 0 && (
             <div className="bg-white rounded-xl shadow-lg p-6">
-              <h2 className="text-2xl font-semibold text-navy-900 mb-4">Orders for My Products</h2>
+              <h2 className="text-2xl font-semibold text-navy-900 mb-4">طلبات لمنتجاتي</h2>
               {producerOrdersLoading ? (
-                <p className="text-navy-500">Loading producer orders...</p>
+                <p className="text-navy-500">جاري تحميل طلبات المنتج...</p>
               ) : (
                 <div className="space-y-4">
                   {producerOrders.map((order) => (
                     <div key={order._id} className="border border-light-blue-200 rounded-lg p-4 bg-light-blue-50">
                       <div className="flex justify-between items-start mb-2">
                         <div>
-                          <p className="font-semibold text-navy-900">Order #{order._id.substring(0, 8)}</p>
+                          <p className="font-semibold text-navy-900">طلب #{order._id.substring(0, 8)}</p>
                           <p className="text-sm text-navy-500">
                             {new Date(order.date).toLocaleDateString()}
                           </p>
@@ -429,24 +422,24 @@ const MyProfil = () => {
                             <div>
                               <p className="text-navy-900">{item.name}</p>
                               <p className="text-sm text-navy-500">
-                                {item.quantity} x {item.price} DT ({item.size})
+                                {item.quantity} x {item.price} دينار ({item.size})
                               </p>
                             </div>
-                            <p className="text-navy-900">{item.quantity * item.price} DT</p>
+                            <p className="text-navy-900">{item.quantity * item.price} دينار</p>
                           </div>
                         ))}
                       </div>
 
                       <div className="flex justify-between border-t border-light-blue-200 pt-2">
                         <div>
-                          <p className="text-sm text-navy-500">Delivery: {order.typeLivraison}</p>
-                          <p className="text-sm text-navy-500">Payment: {order.paymentMethod}</p>
+                          <p className="text-sm text-navy-500">التوصيل: {order.typeLivraison}</p>
+                          <p className="text-sm text-navy-500">الدفع: {order.paymentMethod}</p>
                         </div>
                         <div className="text-right">
-                          <p className="font-semibold text-navy-900">Total: {order.amount + order.amount_livraison} DT</p>
-                          <p className="text-sm text-navy-500">(Products: {order.amount} DT)</p>
+                          <p className="font-semibold text-navy-900">المجموع: {order.amount + order.amount_livraison} دينار</p>
+                          <p className="text-sm text-navy-500">(المنتجات: {order.amount} دينار)</p>
                           {order.amount_livraison > 0 && (
-                            <p className="text-sm text-navy-500">(Delivery: {order.amount_livraison} DT)</p>
+                            <p className="text-sm text-navy-500">(التوصيل: {order.amount_livraison} دينار)</p>
                           )}
                         </div>
                       </div>
@@ -457,7 +450,7 @@ const MyProfil = () => {
                           className="!bg-navy-700 hover:!bg-navy-800"
                           onClick={() => handleConfirmOrder(order._id)}
                         >
-                          Confirm and Prepared
+                          تأكيد وإعداد
                         </Button>
                       </div>
                     </div>
@@ -467,20 +460,20 @@ const MyProfil = () => {
             </div>
           )}
 
-          {/* My Orders */}
+          {/* طلباتي */}
           <div className="bg-white rounded-xl shadow-lg p-6">
-            <h2 className="text-2xl font-semibold text-navy-900 mb-4">My Orders</h2>
+            <h2 className="text-2xl font-semibold text-navy-900 mb-4">طلباتي</h2>
             {ordersLoading ? (
-              <p className="text-navy-500">Loading orders...</p>
+              <p className="text-navy-500">جاري تحميل الطلبات...</p>
             ) : orders.length === 0 ? (
-              <p className="text-navy-500">No orders found</p>
+              <p className="text-navy-500">لا توجد طلبات</p>
             ) : (
               <div className="space-y-4">
                 {orders.map((order) => (
                   <div key={order._id} className="border border-light-blue-200 rounded-lg p-4 bg-light-blue-50">
                     <div className="flex justify-between items-start mb-2">
                       <div>
-                        <p className="font-semibold text-navy-900">Order #{order._id.substring(0, 8)}</p>
+                        <p className="font-semibold text-navy-900">طلب #{order._id.substring(0, 8)}</p>
                         <p className="text-sm text-navy-500">
                           {new Date(order.date).toLocaleDateString()}
                         </p>
@@ -500,24 +493,24 @@ const MyProfil = () => {
                           <div>
                             <p className="text-navy-900">{item.name}</p>
                             <p className="text-sm text-navy-500">
-                              {item.quantity} x {item.price} DT ({item.size})
+                              {item.quantity} x {item.price} دينار ({item.size})
                             </p>
                           </div>
-                          <p className="text-navy-900">{item.quantity * item.price} DT</p>
+                          <p className="text-navy-900">{item.quantity * item.price} دينار</p>
                         </div>
                       ))}
                     </div>
 
                     <div className="flex justify-between border-t border-light-blue-200 pt-2">
                       <div>
-                        <p className="text-sm text-navy-500">Delivery: {order.typeLivraison}</p>
-                        <p className="text-sm text-navy-500">Payment: {order.paymentMethod}</p>
+                        <p className="text-sm text-navy-500">التوصيل: {order.typeLivraison}</p>
+                        <p className="text-sm text-navy-500">الدفع: {order.paymentMethod}</p>
                       </div>
                       <div className="text-right">
-                        <p className="font-semibold text-navy-900">Total: {order.amount + order.amount_livraison} DT</p>
-                        <p className="text-sm text-navy-500">(Products: {order.amount} DT)</p>
+                        <p className="font-semibold text-navy-900">المجموع: {order.amount + order.amount_livraison} دينار</p>
+                        <p className="text-sm text-navy-500">(المنتجات: {order.amount} دينار)</p>
                         {order.amount_livraison > 0 && (
-                          <p className="text-sm text-navy-500">(Delivery: {order.amount_livraison} DT)</p>
+                          <p className="text-sm text-navy-500">(التوصيل: {order.amount_livraison} دينار)</p>
                         )}
                       </div>
                     </div>
@@ -528,7 +521,7 @@ const MyProfil = () => {
                         className="!bg-light-blue-500 hover:!bg-light-blue-600"
                         onClick={() => openMapDialog(order._id)}
                       >
-                        Add Address
+                        إضافة عنوان
                       </Button>
                       {offers[order._id] && (
                         <Button
@@ -536,7 +529,7 @@ const MyProfil = () => {
                           className="!bg-navy-700 hover:!bg-navy-800"
                           onClick={() => handleSeeOffer(offers[order._id])}
                         >
-                          See Offer
+                          عرض العرض
                         </Button>
                       )}
                     </div>
@@ -546,13 +539,13 @@ const MyProfil = () => {
             )}
           </div>
 
-          {/* My Products */}
+          {/* منتجاتي */}
           <div className="bg-white rounded-xl shadow-lg p-6">
-            <h2 className="text-2xl font-semibold text-navy-900 mb-4">My Products</h2>
+            <h2 className="text-2xl font-semibold text-navy-900 mb-4">منتجاتي</h2>
             {productsLoading ? (
-              <p className="text-navy-500">Loading products...</p>
+              <p className="text-navy-500">جاري تحميل المنتجات...</p>
             ) : products.length === 0 ? (
-              <p className="text-navy-500">No products found</p>
+              <p className="text-navy-500">لا توجد منتجات</p>
             ) : (
               <div className="space-y-4">
                 {products.map((product) => (
@@ -569,29 +562,29 @@ const MyProfil = () => {
                         <p className="font-semibold text-navy-900">{product.name}</p>
                         <p className="text-sm text-navy-500">{product.description}</p>
                         <p className="text-sm mt-1">
-                          <strong>Category:</strong> {product.category} / {product.subCategory}
+                          <strong>الفئة:</strong> {product.category} / {product.subCategory}
                         </p>
                         <p className="text-sm">
-                          <strong>Price:</strong> {product.price} DT
+                          <strong>السعر:</strong> {product.price} دينار
                         </p>
                         <p className="text-sm">
-                          <strong>Size:</strong> {product.sizes?.join(', ') || 'N/A'}
+                          <strong>الحجم:</strong> {product.sizes?.join(', ') || 'غير متاح'}
                         </p>
                         {product.poidnet?.length > 0 && (
                           <p className="text-sm">
-                            <strong>Net Weight:</strong> {product.poidnet.join(', ')}
+                            <strong>الوزن الصافي:</strong> {product.poidnet.join(', ')}
                           </p>
                         )}
                         {product.availablepoids?.length > 0 && (
                           <p className="text-sm">
-                            <strong>Available Weight:</strong> {product.availablepoids.join(', ')}
+                            <strong>الأوزان المتاحة:</strong> {product.availablepoids.join(', ')}
                           </p>
                         )}
                         <p className="text-sm">
-                          <strong>Market:</strong> {product.marcheID || 'No market'}
+                          <strong>السوق:</strong> {product.marcheID || 'لا يوجد سوق'}
                         </p>
                         <p className="text-sm">
-                          <strong>Date:</strong> {new Date(product.date).toLocaleDateString()}
+                          <strong>التاريخ:</strong> {new Date(product.date).toLocaleDateString()}
                         </p>
                       </div>
                       <IconButton
@@ -609,32 +602,32 @@ const MyProfil = () => {
           </div>
         </div>
 
-        {/* Dialogs */}
+        {/* النوافذ المنبثقة */}
         <Dialog open={isMapOpen} onClose={closeMapDialog} maxWidth="md" fullWidth>
-          <DialogTitle className="bg-navy-50 text-navy-900">Select Address on Map</DialogTitle>
+          <DialogTitle className="bg-navy-50 text-navy-900">حدد العنوان على الخريطة</DialogTitle>
           <DialogContent>
             <Map orderId={selectedOrderId} />
           </DialogContent>
         </Dialog>
 
         <Dialog open={showOfferDialog} onClose={handleCloseOfferDialog} maxWidth="sm" fullWidth>
-          <DialogTitle className="bg-navy-50 text-navy-900">Offer Details</DialogTitle>
+          <DialogTitle className="bg-navy-50 text-navy-900">تفاصيل العرض</DialogTitle>
           <DialogContent>
             {selectedOffer ? (
               <div className="space-y-2 text-navy-900">
-                <p><strong>User ID:</strong> {selectedOffer.userId}</p>
-                <p><strong>Type:</strong> {selectedOffer.typeoffre}</p>
-                <p><strong>Price:</strong> {selectedOffer.pricepardinar} TND</p>
-                <p><strong>Order ID:</strong> {selectedOffer.ordreId.substring(0, 8)}</p>
-                <p><strong>Status:</strong> {selectedOffer.statutoffre}</p>
+                <p><strong>معرف المستخدم:</strong> {selectedOffer.userId}</p>
+                <p><strong>النوع:</strong> {selectedOffer.typeoffre}</p>
+                <p><strong>السعر:</strong> {selectedOffer.pricepardinar} دينار</p>
+                <p><strong>معرف الطلب:</strong> {selectedOffer.ordreId.substring(0, 8)}</p>
+                <p><strong>الحالة:</strong> {selectedOffer.statutoffre}</p>
               </div>
             ) : (
-              <p className="text-navy-500">No offer details available</p>
+              <p className="text-navy-500">لا توجد تفاصيل متاحة للعرض</p>
             )}
           </DialogContent>
           <DialogActions>
             <Button onClick={handleCloseOfferDialog} className="!text-navy-700">
-              Close
+              إغلاق
             </Button>
             {selectedOffer?.statutoffre === 'waiting' && (
               <>
@@ -643,14 +636,14 @@ const MyProfil = () => {
                   className="!bg-navy-700 hover:!bg-navy-800 !text-white"
                   variant="contained"
                 >
-                  Accept
+                  قبول
                 </Button>
                 <Button
                   onClick={() => handleUpdateOfferStatus(selectedOffer.ordreId, 'rejected')}
                   className="!bg-red-600 hover:!bg-red-700 !text-white"
                   variant="contained"
                 >
-                  Deny
+                  رفض
                 </Button>
               </>
             )}

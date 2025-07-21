@@ -3,12 +3,11 @@ import axios from "axios";
 import { AppContext } from "../../context/AppContext";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import { API_URL } from "../../config/api.js";
 
 const CreateProduct = () => {
   const { userData, getUserData } = useContext(AppContext);
   const navigate = useNavigate();
-  const backendUrl = API_URL;
+  const backendUrl = "http://localhost:4000";
 
   const [productData, setProductData] = useState({
     name: "",
@@ -28,6 +27,7 @@ const CreateProduct = () => {
   const [markets, setMarkets] = useState([]);
   const [units] = useState(["لتر", "كيلوغرام", "طن", "غرام"]);
   const [loading, setLoading] = useState(false);
+  const [tarifs, setTarifs] = useState([]); // New state for tariff data
 
   useEffect(() => {
     getUserData();
@@ -38,6 +38,11 @@ const CreateProduct = () => {
     axios.get(`${backendUrl}/api/marche/`)
       .then(response => setMarkets(response.data))
       .catch(() => toast.error("خطأ في تحميل الأسواق"));
+
+    // Load tariff data when component mounts
+    axios.get(`${backendUrl}/api/administration/tarifs-parkillo`)
+      .then(response => setTarifs(response.data))
+      .catch(() => toast.error("خطأ في تحميل التعريفات"));
   }, [getUserData]);
 
   const handleCategoryChange = async (e) => {
@@ -46,7 +51,8 @@ const CreateProduct = () => {
       ...prev,
       category: selectedCategory,
       subCategory: "",
-      sizes: ""
+      sizes: "",
+      price: ""
     }));
 
     if (selectedCategory) {
@@ -62,6 +68,20 @@ const CreateProduct = () => {
     } else {
       setSubCategories([]);
     }
+  };
+
+  const handleSubCategoryChange = (e) => {
+    const selectedSubCategory = e.target.value;
+    
+    // Check if the selected subCategory exists in tarifs
+    const foundTarif = tarifs.find(item => item[0] === selectedSubCategory);
+    
+    setProductData(prev => ({
+      ...prev,
+      subCategory: selectedSubCategory,
+      price: foundTarif ? foundTarif[1].toString() : "",
+      sizes: foundTarif ? "كيلوغرام" : ""
+    }));
   };
 
   const handleChange = (e) => {
@@ -127,12 +147,26 @@ const CreateProduct = () => {
               يمكن بيع وشراء المنتجات الفلاحية دون إتباع مسالك التوزيع طبق إجراءات يقننها وزير التجارة ووزارة الفلاحة والصيد البحري.
               تخضع بعض السلع إلى التسعيرة ومعايير وجب اتباعها مقننة من وزارة التجارة.
             </p>
-                        <p className="text-gray-700 text-sm leading-relaxed" style={{ fontFamily: "'Amiri', serif" }}>
-              ٠ حسب الفصل عدد 4 : يمنع التعامل وشراء المنتجات الفلاحية والصيد البحري خارج الفضاءات المرخصة لها والأسواق المنشأة من قبل الدولة.
-              يمكن بيع وشراء المنتجات الفلاحية دون إتباع مسالك التوزيع طبق إجراءات يقننها وزير التجارة ووزارة الفلاحة والصيد البحري.
-              تخضع بعض السلع إلى التسعيرة ومعايير وجب اتباعها مقننة من وزارة التجارة.
-            </p>
+            <p className="text-gray-700 text-sm leading-relaxed" style={{ fontFamily: "'Amiri', serif" }}>
+              بعض المنتوجات تخضع إلى تسعيرة من قبل وزارة التجارة يجب عليك إتباعها           </p>
+                          <p className="mb-2">الرجاء ربط منتوجك بأحد الأسواق في صورة ما إذا إضافة نقس نوع المنتج مرتين</p>
+              
+          
+
+                            <p className="mb-2 font-semibold text-dark-blue" style={{ color: 'darkblue' }}>أنقر هنا :</p>
+                            
+                            <div className="space-y-2 mt-4">
+                              
+                              <a href="https://idaraty.tn/publications/jort-1994-058-b564" 
+                                 target="_blank" 
+                                 rel="noopener noreferrer"
+                                 className="block text-blue-600 hover:underline">
+                                قانون عدد 86 لسنة 1994 المنظم لمسالك التوزيع المنتوجات الفلاحية و الصيد البحري
+                              </a>
+                              </div>
           </div>
+
+
 
           {/* Form Section */}
           <div className="lg:col-span-2 bg-white rounded-xl shadow-sm p-6">
@@ -162,6 +196,7 @@ const CreateProduct = () => {
                     onChange={handleChange}
                     className={inputStyle}
                     required
+                    readOnly={!!tarifs.find(item => item[0] === productData.subCategory)} // Make read-only if subCategory is in tarifs
                   />
                 </div>
               </div>
@@ -217,7 +252,7 @@ const CreateProduct = () => {
                     <select
                       name="subCategory"
                       value={productData.subCategory}
-                      onChange={handleChange}
+                      onChange={handleSubCategoryChange} // Changed to use handleSubCategoryChange
                       className={selectStyle}
                       required
                     >
@@ -240,6 +275,7 @@ const CreateProduct = () => {
                     onChange={handleChange}
                     className={selectStyle}
                     required
+                    disabled={!!tarifs.find(item => item[0] === productData.subCategory)} // Disable if subCategory is in tarifs
                   >
                     <option value="">اختر وحدة</option>
                     {units.map(unit => (

@@ -17,9 +17,9 @@ const MapButton = () => {
     <div>
       <button
         onClick={handleClickOpen}
-        className="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-md shadow-sm transition-colors duration-200"
+        className="bg-blue-500 hover:bg-blue-600 text-white arabic-text font-medium py-2 px-4 rounded-md shadow-sm transition-colors duration-200"
       >
-        add your adress
+        أضف إحداثياتك
       </button>
 
       <Dialog

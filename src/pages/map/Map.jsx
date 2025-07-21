@@ -9,7 +9,7 @@ import { AppContext } from "../../context/AppContext";
 import { toast } from "react-toastify";
 import "../../styles/Map.css";
 
-// Custom Leaflet marker icon
+// أيقونة علامة Leaflet المخصصة
 const blueIcon = new L.Icon({
   iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png",
   iconSize: [25, 41],
@@ -19,7 +19,7 @@ const blueIcon = new L.Icon({
   shadowSize: [41, 41],
 });
 
-// Handle clicks on the map
+// معالجة النقرات على الخريطة
 const MapClickHandler = ({ setCoordinates }) => {
   useMapEvents({
     click(e) {
@@ -37,7 +37,7 @@ const Map = ({ onClose, orderId: propOrderId }) => {
   const [orderId, setOrderId] = useState(propOrderId || null);
   const location = useLocation();
 
-  // Parse orderId from the URL or props
+  // تحليل orderId من الرابط أو الخصائص
   useEffect(() => {
     const queryParams = new URLSearchParams(location.search);
     const orderIdParam = queryParams.get("orderId");
@@ -51,7 +51,7 @@ const Map = ({ onClose, orderId: propOrderId }) => {
 
   const handleSaveAddress = async () => {
     if (!coordinates) {
-      toast.error("Please select a location on the map.");
+      toast.error("الرجاء تحديد موقع على الخريطة.");
       return;
     }
 
@@ -70,13 +70,13 @@ const Map = ({ onClose, orderId: propOrderId }) => {
 
       if (response.status === 200 || response.status === 201) {
         toast.success(
-          `${mode === "user" ? "User" : "Order"} address saved successfully!`
+          `${mode === "user" ? "تم حفظ عنوان المستخدم" : "تم حفظ عنوان الطلب"} بنجاح!`
         );
         if (onClose) onClose();
       }
     } catch (error) {
-      console.error("Save address error:", error);
-      toast.error("Failed to save address.");
+      console.error("خطأ في حفظ العنوان:", error);
+      toast.error("فشل في حفظ العنوان.");
     }
   };
 
@@ -84,14 +84,22 @@ const Map = ({ onClose, orderId: propOrderId }) => {
     <div className="flex flex-col lg:flex-row gap-6 p-6 bg-white rounded-xl shadow-lg max-w-4xl mx-auto">
       <div className="flex-1">
         <MapContainer
-          center={[36.8065, 10.1815]} // Tunis center
+          center={[36.8065, 10.1815]} // مركز تونس
           zoom={13}
           className="h-96 w-full rounded-lg shadow-md"
         >
+          {/* طبقة العشب/المناطق الخضراء */}
           <TileLayer
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            attribution='© <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
+            url="https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png"
+            attribution='© <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, Tiles style by <a href="https://www.hotosm.org/" target="_blank">Humanitarian OpenStreetMap Team</a>'
           />
+          
+          {/* طبقة أساسية بديلة يمكن أن تظهر المزيد من المناطق الخضراء */}
+          {/* <TileLayer
+            url="https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png"
+            attribution='© <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://www.cyclosm.org/">CyclOSM</a>'
+          /> */}
+          
           <MapClickHandler setCoordinates={setCoordinates} />
           {coordinates && <Marker position={coordinates} icon={blueIcon} />}
         </MapContainer>
@@ -99,25 +107,25 @@ const Map = ({ onClose, orderId: propOrderId }) => {
 
       <div className="flex-1 flex flex-col justify-center p-6 bg-blue-50 rounded-lg">
         <h2 className="text-2xl font-semibold text-gray-800 mb-4">
-          Add {mode === "user" ? "User" : "Order"} Address
+          إضافة {mode === "user" ? "عنوان المستخدم" : "عنوان الطلب"}
         </h2>
         {coordinates ? (
           <div className="mb-6">
             <p className="text-gray-600">
-              Latitude: <span className="font-medium text-blue-600">{coordinates[0].toFixed(4)}</span>
+              خط العرض: <span className="font-medium text-blue-600">{coordinates[0].toFixed(4)}</span>
             </p>
             <p className="text-gray-600">
-              Longitude: <span className="font-medium text-blue-600">{coordinates[1].toFixed(4)}</span>
+              خط الطول: <span className="font-medium text-blue-600">{coordinates[1].toFixed(4)}</span>
             </p>
           </div>
         ) : (
-          <p className="text-gray-500 mb-6">Click on the map to select a location.</p>
+          <p className="text-gray-500 mb-6">انقر على الخريطة لتحديد الموقع.</p>
         )}
         <button
           onClick={handleSaveAddress}
           className="bg-blue-500 text-white font-medium py-2 px-4 rounded-lg hover:bg-blue-600 transition duration-200"
         >
-          Save Address
+          حفظ العنوان
         </button>
       </div>
     </div>

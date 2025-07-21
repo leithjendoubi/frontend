@@ -2,7 +2,6 @@ import React, { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { AppContext } from '../../context/AppContext';
-import { API_URL } from '../../config/api.js';
 
 const CartPage = () => {
   const { userData } = useContext(AppContext);
@@ -16,7 +15,7 @@ const CartPage = () => {
     const fetchCart = async () => {
       try {
         const cartResponse = await axios.post(
-          `${API_URL}/api/cart/get`,
+          'http://localhost:4000/api/cart/get',
           { userId: userData.userId },
           {
             headers: {
@@ -31,7 +30,7 @@ const CartPage = () => {
         const productIds = Object.keys(cartData);
         const productPromises = productIds.map(async (productId) => {
           try {
-            const response = await axios.get(`${API_URL}/api/product/${productId}`);
+            const response = await axios.get(`http://localhost:4000/api/product/${productId}`);
             return response.data.product;
           } catch (err) {
             console.error(`فشل جلب المنتج ${productId}:`, err);
@@ -76,7 +75,7 @@ const CartPage = () => {
 
     try {
       const response = await axios.post(
-        `${API_URL}/api/cart/delete`,
+        'http://localhost:4000/api/cart/delete',
         {
           userId: userData.userId,
           itemId: productId,

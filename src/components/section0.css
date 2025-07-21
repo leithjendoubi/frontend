@@ -48,45 +48,170 @@
   left: 50%;
   transform: translate(-50%, -50%);
   background-color: rgba(0, 0, 0, 0.55);
-  padding: 40px 60px;
+  padding: 20px 30px;
   border-radius: 10px;
   text-align: center;
-  z-index: 3; 
+  z-index: 3;
+  width: 90%;
+  max-width: 500px;
+}
+
+/* Mobile styles */
+@media (max-width: 640px) {
+  .overlay-card {
+    padding: 15px 20px;
+    width: 95%;
+  }
+}
+
+/* Tablet styles */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .overlay-card {
+    padding: 25px 40px;
+    width: 85%;
+  }
+}
+
+/* Desktop styles */
+@media (min-width: 1025px) {
+  .overlay-card {
+    padding: 40px 60px;
+    width: 80%;
+  }
 }
 
 .firma-title {
   color: white;
-  font-size: 3rem;
+  font-size: 2rem;
   margin-bottom: 10px;
 }
 
 .firma-subtitle {
   color: white;
-  font-size: 1.25rem;
+  font-size: 1rem;
 }
 
 .firma-des {
   color: white;
-  font-size: 0.8rem;
+  font-size: 0.7rem;
+}
+
+/* Mobile styles */
+@media (max-width: 640px) {
+  .firma-title {
+    font-size: 1.5rem;
+    margin-bottom: 8px;
+  }
+  
+  .firma-subtitle {
+    font-size: 0.9rem;
+  }
+  
+  .firma-des {
+    font-size: 0.6rem;
+  }
+}
+
+/* Tablet styles */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .firma-title {
+    font-size: 2.5rem;
+    margin-bottom: 12px;
+  }
+  
+  .firma-subtitle {
+    font-size: 1.1rem;
+  }
+  
+  .firma-des {
+    font-size: 0.75rem;
+  }
+}
+
+/* Desktop styles */
+@media (min-width: 1025px) {
+  .firma-title {
+    font-size: 3rem;
+    margin-bottom: 10px;
+  }
+  
+  .firma-subtitle {
+    font-size: 1.25rem;
+  }
+  
+  .firma-des {
+    font-size: 0.8rem;
+  }
 }
 
 /* From Uiverse.io by SteveBloX */
 .start-btn {
-  width: 150px;
-  height: 60px;
+  width: 120px;
+  height: 50px;
   border: 3px solid #315cfd;
   border-radius: 45px;
   transition: all 0.3s ease;
   cursor: pointer;
   background: transparent; /* text button with transparent background */
   color: white;
-  font-size: 1.2em;
+  font-size: 1em;
   font-weight: 550;
   margin-top: 20px;
+}
+
+/* Mobile styles */
+@media (max-width: 640px) {
+  .start-btn {
+    width: 100px;
+    height: 45px;
+    font-size: 0.9em;
+    margin-top: 15px;
+  }
+}
+
+/* Tablet styles */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .start-btn {
+    width: 130px;
+    height: 55px;
+    font-size: 1.1em;
+    margin-top: 18px;
+  }
+}
+
+/* Desktop styles */
+@media (min-width: 1025px) {
+  .start-btn {
+    width: 150px;
+    height: 60px;
+    font-size: 1.2em;
+    margin-top: 20px;
+  }
 }
 
 .start-btn:hover {
   background: #315cfd;
   color: white;
-  font-size: 1.5em;
+  font-size: 1.2em;
+}
+
+/* Mobile hover adjustments */
+@media (max-width: 640px) {
+  .start-btn:hover {
+    font-size: 1em;
+  }
+}
+
+/* Tablet hover adjustments */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .start-btn:hover {
+    font-size: 1.3em;
+  }
+}
+
+/* Desktop hover adjustments */
+@media (min-width: 1025px) {
+  .start-btn:hover {
+    font-size: 1.5em;
+  }
 }

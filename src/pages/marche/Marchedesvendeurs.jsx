@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
-import { API_URL } from '../../config/api.js';
+import listemarche from '../../assets/listemarche.jpeg';
 
 const Market = () => {
   const [markets, setMarkets] = useState([]);
@@ -16,7 +16,7 @@ const Market = () => {
     const fetchMarkets = async () => {
       setLoading(true);
       try {
-        const response = await axios.get(`${API_URL}/api/marche/`);
+        const response = await axios.get('http://localhost:4000/api/marche/');
         setMarkets(Array.isArray(response.data) ? response.data : []);
         setLoading(false);
       } catch (err) {
@@ -33,7 +33,7 @@ const Market = () => {
     setProductsLoading(true);
     setProductsError(null);
     try {
-      const response = await axios.get(`${API_URL}/api/product/`);
+      const response = await axios.get('http://localhost:4000/api/product/');
       const filteredProducts = response.data.products.filter(
         (product) => product.marcheID === marcheId
       );
@@ -71,9 +71,19 @@ const Market = () => {
           {/* Regulatory Information Card */}
           <div className="bg-blue-100 rounded-xl shadow-sm p-6">
             <h2 className="text-lg font-semibold text-blue-900 mb-4">اللوائح القانونية</h2>
-            <p className="text-gray-700 text-sm leading-relaxed" style={{ fontFamily: "'Amiri', serif" }}>
-              * فصل عدد 6 : يمنع تجميع ونقل وخزن المنتجات الفلاحية والصيد دون الحصول على الصفة
+            <p className="text-gray-700 text-sm arabic text leading-relaxed" style={{ fontFamily: "'Amiri', serif" }}>
+              هذه القائمة يتم تعديلها حسب منشور الأسواق المنظمة من قبل وزارة التجارة
             </p>
+                          <p className="mb-2 font-semibold text-dark-blue" style={{ color: 'darkblue' }}>أنقر هنا :</p>
+                          
+                          <div className="space-y-2 mt-4">
+                            <a href={listemarche} 
+               target="_blank" 
+               rel="noopener noreferrer"
+               className="block text-blue-600 hover:underline">
+              منشور أسواق الإنتاج و الجملة
+            </a>
+            </div>
           </div>
 
           {/* Markets Section */}

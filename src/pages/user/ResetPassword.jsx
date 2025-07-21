@@ -83,30 +83,30 @@ const ResetPassword = () => {
   return (
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-200 to-blue-400">
       <img
-        onClick={() => navigate("/Home1")}
+        onClick={() => navigate("/")}
         src={assets.elfirma}
-        alt="logo"
+        alt="شعار"
         className="absolute left-5 sm:left-20 top-5 w-50 sm:w-60 cursor-pointer"
       />
 
-      {/* enter email id */}
+      {/* Email Entry Form */}
       {!isEmailSent && (
         <form
           onSubmit={onSubmitEmail}
           className="bg-slate-900 p-8 rounded-lg shadow-lg w-96 text-sm"
         >
           <h1 className="text-white text-2xl font-semibold text-center mb-4">
-            Reset password
+            إعادة تعيين كلمة المرور
           </h1>
           <p className="text-center mb-6 text-indigo-300">
-            Enter your registered email address
+            أدخل عنوان البريد الإلكتروني المسجل
           </p>
 
           <div className="mb-4 flex items-center gap-3 w-full px-5 py-2.5 rounded-full bg-[#333A5C]">
-            <img src={assets.mail_icon} alt="mail_icon" className="w-3 h-3" />
+            <img src={assets.mail_icon} alt="أيقونة البريد" className="w-3 h-3" />
             <input
               type="email"
-              placeholder="Email id"
+              placeholder="البريد الإلكتروني"
               className="bg-transparent outline-none text-white"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -114,22 +114,22 @@ const ResetPassword = () => {
             />
           </div>
           <button className="w-full py-2.5 bg-gradient-to-r from-indigo-500 to-indigo-900 text-white rounded-full mt-3">
-            Submit
+            إرسال
           </button>
         </form>
       )}
 
-      {/* otp input form */}
+      {/* OTP Entry Form */}
       {!isOtpSubmitted && isEmailSent && (
         <form
           onSubmit={onSubmitOTP}
           className="bg-slate-900 p-8 rounded-lg shadow-lg w-96 text-sm"
         >
           <h1 className="text-white text-2xl font-semibold text-center mb-4">
-            Reset password OTP
+            رمز التحقق لإعادة تعيين كلمة المرور
           </h1>
           <p className="text-center mb-6 text-indigo-300">
-            Enter the 6-digit code sent to your email id.
+            أدخل الرمز المكون من 6 أرقام المرسل إلى بريدك الإلكتروني
           </p>
           <div className="flex justify-between mb-8" onPaste={handlePaste}>
             {Array(6)
@@ -148,29 +148,29 @@ const ResetPassword = () => {
               ))}
           </div>
           <button className="w-full py-2.5 bg-gradient-to-r from-indigo-500 to-indigo-900 text-white rounded-full">
-            Submit
+            تأكيد
           </button>
         </form>
       )}
 
-      {/* enter new password */}
+      {/* New Password Entry Form */}
       {isOtpSubmitted && isEmailSent && (
         <form
           onSubmit={onSubmitNewPassword}
           className="bg-slate-900 p-8 rounded-lg shadow-lg w-96 text-sm"
         >
           <h1 className="text-white text-2xl font-semibold text-center mb-4">
-            New password
+            كلمة المرور الجديدة
           </h1>
           <p className="text-center mb-6 text-indigo-300">
-            Enter the new password below
+            أدخل كلمة المرور الجديدة أدناه
           </p>
 
           <div className="mb-4 flex items-center gap-3 w-full px-5 py-2.5 rounded-full bg-[#333A5C]">
-            <img src={assets.lock_icon} alt="lock_icon" className="w-3 h-3" />
+            <img src={assets.lock_icon} alt="أيقونة القفل" className="w-3 h-3" />
             <input
               type="password"
-              placeholder="Password"
+              placeholder="كلمة المرور"
               className="bg-transparent outline-none text-white"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
@@ -178,7 +178,7 @@ const ResetPassword = () => {
             />
           </div>
           <button className="w-full py-2.5 bg-gradient-to-r from-indigo-500 to-indigo-900 text-white rounded-full mt-3">
-            Submit
+            حفظ
           </button>
         </form>
       )}

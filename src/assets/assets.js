@@ -16,6 +16,7 @@ import elfirma from './elfirma.png'
 import tunisianflag from './tunisianflag.jpg'
 import product from './product.png'
 import stockicon from './stockicon.png'
+import stockicon1 from './stockicon1.png'
 import mandat from './mandat.png'
 import livreuricon from './livreuricon.png'
 
@@ -24,6 +25,7 @@ export const assets = {
     lock_icon,
     livraison_icon,
     logo,
+    stockicon1,
     product,
     stockicon,
     activities_icon,

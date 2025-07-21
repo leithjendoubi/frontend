@@ -1,35 +1,65 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Box, Typography, CircularProgress, Card, CardContent, Grid, Link, List, ListItem, ListItemText, Divider } from '@mui/material';
+import { 
+  Box, Typography, CircularProgress, Card, CardContent, Grid, 
+  Link, List, ListItem, ListItemText, Divider, Button, Dialog, 
+  Chip, Avatar, Paper, Stack
+} from '@mui/material';
+import { 
+  Business, Storage, Phone, LocationOn, 
+  DateRange, AttachFile, Add, CheckCircle, 
+  Pending, Inventory, RequestPage, Refresh
+} from '@mui/icons-material';
 import { toast } from 'react-toastify';
-import { API_URL } from '../../config/api.js';
+import { styled } from '@mui/material/styles';
+
+const BlueCard = styled(Card)(({ theme }) => ({
+  backgroundColor: theme.palette.background.paper,
+  borderLeft: `4px solid ${theme.palette.primary.main}`,
+  boxShadow: '0 4px 20px 0 rgba(0,0,0,0.08)',
+  transition: 'transform 0.3s, box-shadow 0.3s',
+  '&:hover': {
+    transform: 'translateY(-5px)',
+    boxShadow: '0 6px 24px 0 rgba(0,0,0,0.12)'
+  }
+}));
+
+const StatusChip = styled(Chip)(({ status }) => ({
+  backgroundColor: status === 'accepted' ? '#e6f7ee' : 
+                  status === 'pending' ? '#fff8e6' : '#ffebee',
+  color: status === 'accepted' ? '#1a8652' : 
+         status === 'pending' ? '#b38700' : '#d32f2f',
+  fontWeight: 600,
+  fontSize: '0.75rem'
+}));
 
 const Stockeur = () => {
   const [userId, setUserId] = useState('');
   const [stockisteDetails, setStockisteDetails] = useState(null);
-  const [equipements, setEquipements] = useState([]); // Ensure initial state is an array
+  const [equipements, setEquipements] = useState([]);
   const [demands, setDemands] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [openDialog, setOpenDialog] = useState(false);
 
   // First useEffect: Fetch userId
   useEffect(() => {
     const fetchAndSetUserId = async () => {
       try {
-        const response = await axios.get(`${API_URL}/api/user/data`);
+        const response = await axios.get('http://localhost:4000/api/user/data');
         if (response.data.success && response.data.userData && response.data.userData.userId) {
           setUserId(response.data.userData.userId);
           setError(null);
         } else {
-          setError("User data not found. Please ensure you are logged in.");
+          setError("لم يتم العثور على بيانات المستخدم. يرجى التأكد من تسجيل الدخول.");
           setLoading(false);
-          toast.error("User data not found. Please log in.");
+          toast.error("لم يتم العثور على بيانات المستخدم. يرجى تسجيل الدخول.");
         }
       } catch (err) {
-        console.error("Error fetching user ID:", err);
-        setError(err.response?.data?.message || "Failed to fetch user data. Are you logged in?");
+        console.error("خطأ في جلب معرف المستخدم:", err);
+        setError(err.response?.data?.message || "فشل جلب بيانات المستخدم. هل أنت مسجل الدخول؟");
         setLoading(false);
-        toast.error(err.response?.data?.message || "Error connecting to authentication service.");
+        toast.error(err.response?.data?.message || "خطأ في الاتصال بخدمة المصادقة.");
       }
     };
 
@@ -39,31 +69,27 @@ const Stockeur = () => {
   // Second useEffect: Fetch all other data
   useEffect(() => {
     const fetchData = async () => {
-      if (!userId) {
-        return;
-      }
+      if (!userId) return;
 
       setLoading(true);
       setError(null);
 
       try {
-        // Fetch Stockiste Details
-        const stockisteResponse = await axios.get(`${API_URL}/api/stockiste/user/${userId}`);
+        // جلب تفاصيل المخزن
+        const [stockisteResponse, equipementResponse, demandsResponse] = await Promise.all([
+          axios.get(`http://localhost:4000/api/stockiste/user/${userId}`),
+          axios.get(`http://localhost:4000/api/equipement/user/${userId}`),
+          axios.get(`http://localhost:4000/api/stock/stockeur/${userId}`)
+        ]);
+
         setStockisteDetails(stockisteResponse.data.stockiste);
-
-        // Fetch Equipements
-        const equipementResponse = await axios.get(`${API_URL}/api/equipement/user/${userId}`);
-        // Ensure equipements is an array, default to empty array if undefined
         setEquipements(Array.isArray(equipementResponse.data.equipements) ? equipementResponse.data.equipements : []);
-
-        // Fetch Demands
-        const demandsResponse = await axios.get(`${API_URL}/api/stock/stockeur/${userId}`);
         setDemands(Array.isArray(demandsResponse.data.demands) ? demandsResponse.data.demands : []);
 
       } catch (err) {
-        console.error("Error fetching data:", err);
-        setError(err.response?.data?.message || "Failed to load stockist dashboard data.");
-        toast.error(err.response?.data?.message || "Error fetching stockist dashboard data.");
+        console.error("خطأ في جلب البيانات:", err);
+        setError(err.response?.data?.message || "فشل تحميل بيانات لوحة تحكم المخزن.");
+        toast.error(err.response?.data?.message || "خطأ في جلب بيانات لوحة تحكم المخزن.");
       } finally {
         setLoading(false);
       }
@@ -72,12 +98,18 @@ const Stockeur = () => {
     fetchData();
   }, [userId]);
 
-  // Render Logic
+  const handleOpenDialog = () => setOpenDialog(true);
+  const handleCloseDialog = () => setOpenDialog(false);
+
+  const CreateEquip = React.lazy(() => import('C:/Users/leith/Desktop/firma/client/src/pages/stock/createequip.jsx'));
+
   if (loading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="80vh">
-        <CircularProgress />
-        <Typography variant="h6" ml={2}>Loading dashboard data...</Typography>
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="80vh" flexDirection="column">
+        <CircularProgress size={60} thickness={4} sx={{ mb: 3, color: 'primary.main' }} />
+        <Typography variant="h6" color="primary">
+          جاري تحميل لوحة تحكم المخزن...
+        </Typography>
       </Box>
     );
   }
@@ -85,7 +117,22 @@ const Stockeur = () => {
   if (error) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="80vh">
-        <Typography color="error" variant="h6">{error}</Typography>
+        <Paper elevation={3} sx={{ p: 4, textAlign: 'center', maxWidth: 600 }}>
+          <Typography variant="h5" color="error" gutterBottom>
+            خطأ في تحميل لوحة التحكم
+          </Typography>
+          <Typography variant="body1" sx={{ mb: 3 }}>
+            {error}
+          </Typography>
+          <Button 
+            variant="contained" 
+            color="primary" 
+            onClick={() => window.location.reload()}
+            startIcon={<Refresh />}
+          >
+            تحديث الصفحة
+          </Button>
+        </Paper>
       </Box>
     );
   }
@@ -93,136 +140,371 @@ const Stockeur = () => {
   if (!stockisteDetails) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="80vh">
-        <Typography variant="h6">No stockist details found for this user ID. Please ensure you have registered as a stockist.</Typography>
+        <Paper elevation={3} sx={{ p: 4, textAlign: 'center', maxWidth: 600 }}>
+          <Typography variant="h5" gutterBottom>
+            لم يتم العثور على ملف المخزن
+          </Typography>
+          <Typography variant="body1" sx={{ mb: 3 }}>
+            يرجى التأكد من تسجيلك كمخزن للوصول إلى لوحة التحكم هذه.
+          </Typography>
+          <Button variant="contained" color="primary">
+            التسجيل كمخزن
+          </Button>
+        </Paper>
       </Box>
     );
   }
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Typography variant="h4" component="h1" gutterBottom>
-        Stockeur Dashboard
+    <Box sx={{ p: { xs: 2, md: 4 }, maxWidth: '1800px', margin: '0 auto' }}>
+      <Typography variant="h4" component="h1" gutterBottom sx={{ 
+        fontWeight: 700, 
+        color: 'primary.dark',
+        mb: 4,
+        display: 'flex',
+        alignItems: 'center',
+        gap: 2
+      }}>
+        <Business fontSize="large" /> لوحة تحكم المخزن
       </Typography>
 
-      {/* Stockiste Details */}
-      <Card sx={{ mb: 4, boxShadow: 3 }}>
+      {/* تفاصيل المخزن */}
+      <BlueCard sx={{ mb: 4 }}>
         <CardContent>
-          <Typography variant="h5" component="h2" gutterBottom>
-            Your Stockist Profile
+          <Typography variant="h5" component="h2" gutterBottom sx={{ 
+            fontWeight: 600,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1,
+            color: 'primary.main'
+          }}>
+            <Business color="primary" /> ملف المخزن الخاص بك
           </Typography>
-          <Grid container spacing={2}>
-            <Grid item xs={12} sm={6}>
-              <Typography variant="body1"><strong>Legal Name:</strong> {stockisteDetails.nomlegal}</Typography>
-              <Typography variant="body1"><strong>Professional Address:</strong> {stockisteDetails.addressProfessionelle}</Typography>
-              <Typography variant="body1"><strong>Phone Number:</strong> {stockisteDetails.numeroPhone}</Typography>
+          
+          <Grid container spacing={3}>
+            <Grid item xs={12} md={6}>
+              <Stack spacing={2}>
+                <Box display="flex" alignItems="center" gap={1}>
+                  <Business color="action" />
+                  <Typography variant="body1">
+                    <strong>الاسم القانوني:</strong> {stockisteDetails.nomlegal}
+                  </Typography>
+                </Box>
+                
+                <Box display="flex" alignItems="flex-start" gap={1}>
+                  <LocationOn color="action" />
+                  <Typography variant="body1">
+                    <strong>العنوان:</strong> {stockisteDetails.addressProfessionelle}
+                  </Typography>
+                </Box>
+                
+                <Box display="flex" alignItems="center" gap={1}>
+                  <Phone color="action" />
+                  <Typography variant="body1">
+                    <strong>الهاتف:</strong> {stockisteDetails.numeroPhone}
+                  </Typography>
+                </Box>
+              </Stack>
             </Grid>
-            <Grid item xs={12} sm={6}>
-              <Typography variant="body1"><strong>Storage Type:</strong> {stockisteDetails.typedestockage}</Typography>
-              <Typography variant="body1"><strong>Demand Status:</strong> {stockisteDetails.statusdedamnd}</Typography>
-              <Typography variant="body1"><strong>Account Created:</strong> {new Date(stockisteDetails.datedecreation).toLocaleDateString()}</Typography>
+            
+            <Grid item xs={12} md={6}>
+              <Stack spacing={2}>
+                <Box display="flex" alignItems="center" gap={1}>
+                  <Storage color="action" />
+                  <Typography variant="body1">
+                    <strong>نوع التخزين:</strong> {stockisteDetails.typedestockage}
+                  </Typography>
+                </Box>
+                
+                <Box display="flex" alignItems="center" gap={1}>
+                  {stockisteDetails.statusdedamnd === 'accepted' ? 
+                    <CheckCircle color="success" /> : <Pending color="warning" />}
+                  <Typography variant="body1">
+                    <strong>الحالة:</strong> 
+                    <StatusChip 
+                      label={stockisteDetails.statusdedamnd === 'accepted' ? 'مقبول' : 
+                            stockisteDetails.statusdedamnd === 'pending' ? 'قيد الانتظار' : 
+                            stockisteDetails.statusdedamnd}
+                      status={stockisteDetails.statusdedamnd} 
+                      size="small" 
+                      sx={{ ml: 1 }} 
+                    />
+                  </Typography>
+                </Box>
+                
+                <Box display="flex" alignItems="center" gap={1}>
+                  <DateRange color="action" />
+                  <Typography variant="body1">
+                    <strong>تاريخ الإنشاء:</strong> {new Date(stockisteDetails.datedecreation).toLocaleDateString('ar-EG')}
+                  </Typography>
+                </Box>
+              </Stack>
             </Grid>
+            
             <Grid item xs={12}>
-              <Typography variant="h6" sx={{ mt: 2, mb: 1 }}>Required Documents:</Typography>
+              <Typography variant="h6" sx={{ mt: 1, mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+                <AttachFile color="primary" /> المستندات المطلوبة
+              </Typography>
+              
               {stockisteDetails.documents && Object.keys(stockisteDetails.documents).length > 0 ? (
-                <List dense>
+                <Grid container spacing={2}>
                   {Object.entries(stockisteDetails.documents).map(([key, doc]) => (
-                    <ListItem key={key} disablePadding>
-                      <ListItemText
-                        primary={doc.title || key.replace(/_/g, ' ')}
-                        secondary={
-                          doc.url ? (
-                            <Link href={doc.url} target="_blank" rel="noopener noreferrer">
-                              View Document
-                            </Link>
-                          ) : 'Document not uploaded'
-                        }
-                      />
-                    </ListItem>
+                    <Grid item xs={12} sm={6} md={4} key={key}>
+                      <Paper variant="outlined" sx={{ p: 2 }}>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                          {doc.title || key.replace(/_/g, ' ')}
+                        </Typography>
+                        {doc.url ? (
+                          <Button 
+                            component="a" 
+                            href={doc.url} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            size="small"
+                            sx={{ mt: 1 }}
+                          >
+                            عرض المستند
+                          </Button>
+                        ) : (
+                          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                            غير مرفوع
+                          </Typography>
+                        )}
+                      </Paper>
+                    </Grid>
                   ))}
-                </List>
+                </Grid>
               ) : (
-                <Typography variant="body2" color="text.secondary">No documents uploaded.</Typography>
+                <Typography variant="body2" color="text.secondary">
+                  لا توجد مستندات مرفوعة حتى الآن.
+                </Typography>
               )}
             </Grid>
           </Grid>
         </CardContent>
-      </Card>
+      </BlueCard>
 
-      {/* Your Equipments */}
-      <Card sx={{ mb: 4, boxShadow: 3 }}>
+      {/* معدات التخزين الخاصة بك */}
+      <BlueCard sx={{ mb: 4 }}>
         <CardContent>
-          <Typography variant="h5" component="h2" gutterBottom>
-            Your Equipments
-          </Typography>
-          {equipements && equipements.length > 0 ? (
+          <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+            <Typography variant="h5" component="h2" sx={{ 
+              fontWeight: 600,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1,
+              color: 'primary.main'
+            }}>
+              <Inventory color="primary" /> معدات التخزين الخاصة بك
+            </Typography>
+            
+            <Button 
+              variant="contained" 
+              color="primary" 
+              onClick={handleOpenDialog}
+              startIcon={<Add />}
+              sx={{ 
+                borderRadius: 2,
+                px: 3,
+                py: 1,
+                textTransform: 'none',
+                boxShadow: 'none',
+                '&:hover': {
+                  boxShadow: '0 2px 10px rgba(0,0,0,0.2)'
+                }
+              }}
+            >
+              إضافة معدات جديدة
+            </Button>
+          </Box>
+          
+          {equipements.length > 0 ? (
             <Grid container spacing={3}>
               {equipements.map((equipement) => (
                 <Grid item xs={12} sm={6} md={4} key={equipement._id}>
-                  <Card variant="outlined" sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                  <BlueCard sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
                     <CardContent sx={{ flexGrow: 1 }}>
-                      <Typography variant="h6" gutterBottom>{equipement.nom}</Typography>
+                      <Box display="flex" alignItems="center" gap={1} mb={1}>
+                        <Storage color="primary" />
+                        <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                          {equipement.nom}
+                        </Typography>
+                      </Box>
+                      
                       {equipement.image && (
                         <Box
                           component="img"
                           src={equipement.image}
                           alt={equipement.nom}
-                          sx={{ width: '100%', height: 200, objectFit: 'cover', mb: 1, borderRadius: 1 }}
+                          sx={{ 
+                            width: '100%', 
+                            height: 180, 
+                            objectFit: 'cover', 
+                            mb: 2, 
+                            borderRadius: 1,
+                            border: '1px solid',
+                            borderColor: 'divider'
+                          }}
                         />
                       )}
-                      <Typography variant="body2"><strong>Available Weight:</strong> {equipement.Poidsdisponibleenkillo} kg</Typography>
-                      <Typography variant="body2"><strong>Stored Weight:</strong> {equipement.Poidsstocker} kg</Typography>
-                      <Typography variant="body2"><strong>Products:</strong> {equipement.listdesproduits.join(', ')}</Typography>
-                      <Typography variant="body2"><strong>Price per Day:</strong> {equipement.Prixparjour} TND</Typography>
-                      <Typography variant="body2"><strong>Price per Kilo:</strong> {equipement.Prixparkillo} TND</Typography>
-                      <Typography variant="caption" color="text.secondary">Added on: {new Date(equipement.Date).toLocaleDateString()}</Typography>
+                      
+                      <Grid container spacing={1}>
+                        <Grid item xs={6}>
+                          <Typography variant="body2" color="text.secondary">
+                            <strong>متاح:</strong>
+                          </Typography>
+                          <Typography variant="body1">
+                            {equipement.Poidsdisponibleenkillo} كغ
+                          </Typography>
+                        </Grid>
+                        
+                        <Grid item xs={6}>
+                          <Typography variant="body2" color="text.secondary">
+                            <strong>مخزن:</strong>
+                          </Typography>
+                          <Typography variant="body1">
+                            {equipement.Poidsstocker} كغ
+                          </Typography>
+                        </Grid>
+                        
+                        <Grid item xs={12}>
+                          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                            <strong>المنتجات:</strong>
+                          </Typography>
+                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 0.5 }}>
+                            {equipement.listdesproduits.map((product, index) => (
+                              <Chip 
+                                key={index} 
+                                label={product} 
+                                size="small" 
+                                variant="outlined"
+                              />
+                            ))}
+                          </Box>
+                        </Grid>
+                        
+                        <Grid item xs={6}>
+                          <Typography variant="body2" color="text.secondary">
+                            <strong>السعر/اليوم:</strong>
+                          </Typography>
+                          <Typography variant="body1" color="primary.main" fontWeight={600}>
+                            {equipement.Prixparjour} د.ت
+                          </Typography>
+                        </Grid>
+                        
+                        <Grid item xs={6}>
+                          <Typography variant="body2" color="text.secondary">
+                            <strong>السعر/كغ:</strong>
+                          </Typography>
+                          <Typography variant="body1" color="primary.main" fontWeight={600}>
+                            {equipement.Prixparkillo} د.ت
+                          </Typography>
+                        </Grid>
+                        
+                        <Grid item xs={12}>
+                          <Typography variant="caption" color="text.secondary">
+                            تاريخ الإضافة: {new Date(equipement.Date).toLocaleDateString('ar-EG')}
+                          </Typography>
+                        </Grid>
+                      </Grid>
                     </CardContent>
-                  </Card>
+                  </BlueCard>
                 </Grid>
               ))}
             </Grid>
           ) : (
-            <Typography>No equipments found for your user ID. Add new equipment to your stock.</Typography>
+            <Paper variant="outlined" sx={{ p: 4, textAlign: 'center' }}>
+              <Typography variant="body1" sx={{ mb: 2 }}>
+                لم يتم العثور على معدات تخزين. أضف أول معداتك للبدء.
+              </Typography>
+              <Button 
+                variant="contained" 
+                color="primary" 
+                onClick={handleOpenDialog}
+                startIcon={<Add />}
+              >
+                إضافة معدات
+              </Button>
+            </Paper>
           )}
         </CardContent>
-      </Card>
+      </BlueCard>
 
-      {/* Your Demands */}
-      <Card sx={{ boxShadow: 3 }}>
+      {/* طلبات التخزين */}
+      <BlueCard>
         <CardContent>
-          <Typography variant="h5" component="h2" gutterBottom>
-            Your Demands
+          <Typography variant="h5" component="h2" gutterBottom sx={{ 
+            fontWeight: 600,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1,
+            color: 'primary.main'
+          }}>
+            <RequestPage color="primary" /> طلبات التخزين
           </Typography>
-          {demands && demands.length > 0 ? (
-            <List>
+          
+          {demands.length > 0 ? (
+            <List sx={{ width: '100%' }}>
               {demands.map((demand, index) => (
                 <React.Fragment key={demand._id}>
-                  <ListItem alignItems="flex-start">
+                  <ListItem alignItems="flex-start" sx={{ py: 2 }}>
                     <ListItemText
-                      primary={`Demand ID: ${demand._id}`}
+                      primary={
+                        <Box display="flex" justifyContent="space-between" alignItems="center">
+                          <Typography variant="subtitle1" fontWeight={600}>
+                            طلب رقم #{demand._id.slice(-6).toUpperCase()}
+                          </Typography>
+                          <StatusChip 
+                            label={demand.status === 'accepted' ? 'مقبول' : 
+                                  demand.status === 'pending' ? 'قيد الانتظار' : 
+                                  demand.status}
+                            status={demand.status} 
+                          />
+                        </Box>
+                      }
                       secondary={
                         <React.Fragment>
-                          <Typography
-                            sx={{ display: 'inline' }}
-                            component="span"
-                            variant="body2"
-                            color="text.primary"
-                          >
-                            Status: {demand.status}
+                          <Box mt={1} mb={1}>
+                            {demand.userDemandeur && (
+                              <Box display="flex" alignItems="center" gap={1} mb={1}>
+                                <Avatar 
+                                  src={demand.userDemandeur.image} 
+                                  sx={{ width: 24, height: 24 }}
+                                >
+                                  {demand.userDemandeur.name?.charAt(0) || 'U'}
+                                </Avatar>
+                                <Typography variant="body2">
+                                  {demand.userDemandeur.name || 'مستخدم غير معروف'} (ID: {demand.userDemandeur.userId})
+                                </Typography>
+                              </Box>
+                            )}
+                            
+                            <Grid container spacing={2}>
+                              <Grid item xs={12} sm={6} md={3}>
+                                <Typography variant="body2">
+                                  <strong>الكمية:</strong> {demand.quantity} كغ
+                                </Typography>
+                              </Grid>
+                              
+                              {demand.startDate && demand.endDate && (
+                                <Grid item xs={12} sm={6} md={4}>
+                                  <Typography variant="body2">
+                                    <strong>المدة:</strong> {new Date(demand.startDate).toLocaleDateString('ar-EG')} - {new Date(demand.endDate).toLocaleDateString('ar-EG')}
+                                  </Typography>
+                                </Grid>
+                              )}
+                              
+                              <Grid item xs={12} sm={6} md={3}>
+                                <Typography variant="body2">
+                                  <strong>النوع:</strong> {demand.type === 'standard' ? 'عادي' : demand.type === 'express' ? 'سريع' : demand.type}
+                                </Typography>
+                              </Grid>
+                            </Grid>
+                          </Box>
+                          
+                          <Typography variant="caption" color="text.secondary">
+                            تاريخ الإنشاء: {new Date(demand.createdAt).toLocaleDateString('ar-EG')} الساعة {new Date(demand.createdAt).toLocaleTimeString('ar-EG')}
                           </Typography>
-                          <br />
-                          {demand.userDemandeur && (
-                            <Typography variant="body2" component="span" sx={{ display: 'block' }}>
-                              Demander User: {demand.userDemandeur.name || 'N/A'} (ID: {demand.userDemandeur.userId})
-                            </Typography>
-                          )}
-                          {demand.quantity && <Typography variant="body2" component="span" sx={{ display: 'block' }}>Quantity: {demand.quantity} kg</Typography>}
-                          {demand.startDate && demand.endDate && (
-                            <Typography variant="body2" component="span" sx={{ display: 'block' }}>
-                              Duration: {new Date(demand.startDate).toLocaleDateString()} - {new Date(demand.endDate).toLocaleDateString()}
-                            </Typography>
-                          )}
-                          {demand.type && <Typography variant="body2" component="span" sx={{ display: 'block' }}>Type: {demand.type}</Typography>}
-                          {`Created: ${new Date(demand.createdAt).toLocaleDateString()} at ${new Date(demand.createdAt).toLocaleTimeString()}`}
                         </React.Fragment>
                       }
                     />
@@ -232,10 +514,31 @@ const Stockeur = () => {
               ))}
             </List>
           ) : (
-            <Typography>No demands found for your user ID.</Typography>
+            <Paper variant="outlined" sx={{ p: 4, textAlign: 'center' }}>
+              <Typography variant="body1">
+                لا توجد طلبات تخزين لحسابك.
+              </Typography>
+            </Paper>
           )}
         </CardContent>
-      </Card>
+      </BlueCard>
+
+      {/* نافذة إضافة معدات جديدة */}
+      <Dialog 
+        open={openDialog} 
+        onClose={handleCloseDialog}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{ sx: { borderRadius: 3 } }}
+      >
+        <React.Suspense fallback={
+          <Box p={4} display="flex" justifyContent="center" alignItems="center">
+            <CircularProgress />
+          </Box>
+        }>
+          <CreateEquip onClose={handleCloseDialog} />
+        </React.Suspense>
+      </Dialog>
     </Box>
   );
 };

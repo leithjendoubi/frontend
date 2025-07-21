@@ -2,7 +2,6 @@ import React, { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { AppContext } from '../../context/AppContext';
-import { API_URL } from '../../config/api.js';
 
 const AddOrder = () => {
   const { userData } = useContext(AppContext);
@@ -55,7 +54,7 @@ const AddOrder = () => {
     const fetchCartData = async () => {
       try {
         const cartResponse = await axios.post(
-          `${API_URL}/api/cart/get`,
+          'http://localhost:4000/api/cart/get',
           { userId: userData.userId },
           { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
         );
@@ -66,7 +65,7 @@ const AddOrder = () => {
         const productIds = Object.keys(cartData);
         const productPromises = productIds.map(async (productId) => {
           try {
-            const response = await axios.get(`${API_URL}/api/product/${productId}`);
+            const response = await axios.get(`http://localhost:4000/api/product/${productId}`);
             return response.data.product;
           } catch (err) {
             console.error(`Error fetching product ${productId}:`, err);
@@ -127,7 +126,7 @@ const AddOrder = () => {
       const items = Object.entries(cartItems).map(([productId, sizes]) => {
         return Object.entries(sizes).map(([size, quantity]) => ({
           productId,
-          name: products[productId]?.name || 'Unknown Product',
+          name: products[productId]?.name || 'منتج غير معروف',
           price: products[productId]?.price || 0,
           size,
           quantity
@@ -135,7 +134,7 @@ const AddOrder = () => {
       }).flat();
 
       const fullAddress = formData.typeLivraison === 'centre pickup' 
-        ? `Centre de pickup: ${formData.centrePickup}`
+        ? `مركز الاستلام: ${formData.centrePickup}`
         : `${formData.city}, ${formData.postalCode}, ${formData.streetAddress}`;
 
       const orderData = {
@@ -148,15 +147,15 @@ const AddOrder = () => {
         paymentMethod: formData.paymentMethod,
       };
 
-              const response = await axios.post(
-          `${API_URL}/api/order/add`,
+      const response = await axios.post(
+        'http://localhost:4000/api/order/add',
         orderData,
         { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
       );
 
       if (response.data.success) {
         await axios.post(
-          `${API_URL}/api/cart/delete-cart`,
+          'http://localhost:4000/api/cart/delete-cart',
           { userId: userData.userId },
         );
         navigate(`/marche`);
@@ -182,7 +181,7 @@ const AddOrder = () => {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         </div>
-        <h2 className="text-xl font-bold text-gray-800 mb-2">Error</h2>
+        <h2 className="text-xl font-bold text-gray-800 mb-2">خطأ</h2>
         <p className="text-gray-600">{error}</p>
       </div>
     </div>
@@ -192,15 +191,15 @@ const AddOrder = () => {
     <div className="min-h-screen bg-blue-50 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-10">
-          <h1 className="text-3xl font-extrabold text-blue-800 sm:text-4xl">Passer une Commande</h1>
-          <p className="mt-2 text-lg text-blue-600">Finalisez votre achat en quelques étapes</p>
+          <h1 className="text-3xl font-extrabold text-blue-800 sm:text-4xl">إتمام الطلب</h1>
+          <p className="mt-2 text-lg text-blue-600">أكمل عملية الشراء في بضع خطوات</p>
         </div>
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Order Summary */}
           <div className="bg-white rounded-xl shadow-md overflow-hidden">
             <div className="p-6 bg-blue-700 text-white">
-              <h2 className="text-xl font-semibold">Résumé de la Commande</h2>
+              <h2 className="text-xl font-semibold">ملخص الطلب</h2>
             </div>
             
             <div className="p-6">
@@ -209,7 +208,7 @@ const AddOrder = () => {
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mx-auto text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                   </svg>
-                  <p className="mt-4 text-gray-500">Votre panier est vide</p>
+                  <p className="mt-4 text-gray-500">سلة التسوق فارغة</p>
                 </div>
               ) : (
                 <>
@@ -229,10 +228,10 @@ const AddOrder = () => {
                             {Object.entries(sizes).map(([size, quantity]) => (
                               <div key={size} className="flex justify-between text-sm text-gray-600">
                                 <span>
-                                  {size}: {quantity} × {products[productId]?.price} DT
+                                  {size}: {quantity} × {products[productId]?.price} د.ت
                                 </span>
                                 <span className="font-medium text-blue-700">
-                                  {(products[productId]?.price * quantity).toFixed(2)} DT
+                                  {(products[productId]?.price * quantity).toFixed(2)} د.ت
                                 </span>
                               </div>
                             ))}
@@ -244,16 +243,16 @@ const AddOrder = () => {
                   
                   <div className="mt-6 pt-4 border-t border-gray-200">
                     <div className="flex justify-between items-center">
-                      <span className="font-medium text-gray-700">Sous-total</span>
-                      <span className="font-medium text-gray-900">{total} DT</span>
+                      <span className="font-medium text-gray-700">المجموع الجزئي</span>
+                      <span className="font-medium text-gray-900">{total} د.ت</span>
                     </div>
                     <div className="flex justify-between items-center mt-2">
-                      <span className="font-medium text-gray-700">Livraison</span>
+                      <span className="font-medium text-gray-700">التوصيل</span>
                       <span className="font-medium text-gray-900">-</span>
                     </div>
                     <div className="flex justify-between items-center mt-4 pt-4 border-t border-gray-200">
-                      <span className="text-lg font-bold text-blue-800">Total</span>
-                      <span className="text-lg font-bold text-blue-800">{total} DT</span>
+                      <span className="text-lg font-bold text-blue-800">المجموع الكلي</span>
+                      <span className="text-lg font-bold text-blue-800">{total} د.ت</span>
                     </div>
                   </div>
                 </>
@@ -264,7 +263,7 @@ const AddOrder = () => {
           {/* Delivery Information Form */}
           <div className="bg-white rounded-xl shadow-md overflow-hidden">
             <div className="p-6 bg-blue-700 text-white">
-              <h2 className="text-xl font-semibold">Informations de Livraison</h2>
+              <h2 className="text-xl font-semibold">معلومات التوصيل</h2>
             </div>
             
             <form onSubmit={handleSubmit} className="p-6">
@@ -272,7 +271,7 @@ const AddOrder = () => {
                 {/* Phone Number */}
                 <div>
                   <label htmlFor="numeroPhone" className="block text-sm font-medium text-gray-700 mb-1">
-                    Numéro de Téléphone
+                    رقم الهاتف
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-500">
@@ -290,13 +289,13 @@ const AddOrder = () => {
                       maxLength="13"
                     />
                   </div>
-                  <p className="mt-1 text-xs text-gray-500">Format: 00216XXXXXXXX</p>
+                  <p className="mt-1 text-xs text-gray-500">التنسيق: 00216XXXXXXXX</p>
                 </div>
 
                 {/* Delivery Type */}
                 <div>
                   <label htmlFor="typeLivraison" className="block text-sm font-medium text-gray-700 mb-1">
-                    Type de Livraison
+                    طريقة التوصيل
                   </label>
                   <select
                     id="typeLivraison"
@@ -306,11 +305,11 @@ const AddOrder = () => {
                     className="block w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     required
                   >
-                    <option value="">Sélectionnez une option</option>
-                    <option value="par toi meme">Par toi-même</option>
-                    <option value="centre pickup">Centre de pickup</option>
-                    <option value="attendez une livraison">Attendez une livraison</option>
-                    <option value="par firma">Par Firma</option>
+                    <option value="">اختر طريقة التوصيل</option>
+                    <option value="par toi meme">استلام شخصي</option>
+                    <option value="centre pickup">مركز الاستلام</option>
+                    <option value="attendez une livraison">انتظار التوصيل</option>
+                    <option value="par firma">عن طريق شركة الشحن</option>
                   </select>
                 </div>
 
@@ -318,7 +317,7 @@ const AddOrder = () => {
                 {formData.typeLivraison === 'centre pickup' ? (
                   <div>
                     <label htmlFor="centrePickup" className="block text-sm font-medium text-gray-700 mb-1">
-                      Centre de Pickup
+                      مركز الاستلام
                     </label>
                     <select
                       id="centrePickup"
@@ -328,12 +327,12 @@ const AddOrder = () => {
                       className="block w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       required
                     >
-                      <option value="">Sélectionnez un centre</option>
-                      <option value="bizerte">Bizerte</option>
-                      <option value="tunis">Tunis</option>
-                      <option value="nabeul">Nabeul</option>
-                      <option value="ariana">Ariana</option>
-                      <option value="mateur">Mateur</option>
+                      <option value="">اختر المركز</option>
+                      <option value="bizerte">بنزرت</option>
+                      <option value="tunis">تونس</option>
+                      <option value="nabeul">نابل</option>
+                      <option value="ariana">أريانة</option>
+                      <option value="mateur">ماطر</option>
                     </select>
                   </div>
                 ) : (
@@ -341,7 +340,7 @@ const AddOrder = () => {
                     {/* City */}
                     <div>
                       <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-1">
-                        Ville
+                        المدينة
                       </label>
                       <select
                         id="city"
@@ -351,7 +350,7 @@ const AddOrder = () => {
                         className="block w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         required
                       >
-                        <option value="">Sélectionnez votre ville</option>
+                        <option value="">اختر مدينتك</option>
                         {tunisianCities.map(city => (
                           <option key={city} value={city}>{city}</option>
                         ))}
@@ -361,7 +360,7 @@ const AddOrder = () => {
                     {/* Postal Code */}
                     <div>
                       <label htmlFor="postalCode" className="block text-sm font-medium text-gray-700 mb-1">
-                        Code Postal
+                        الرمز البريدي
                       </label>
                       <input
                         type="text"
@@ -379,7 +378,7 @@ const AddOrder = () => {
                     {/* Street Address */}
                     <div>
                       <label htmlFor="streetAddress" className="block text-sm font-medium text-gray-700 mb-1">
-                        Adresse Complète
+                        العنوان الكامل
                       </label>
                       <textarea
                         id="streetAddress"
@@ -389,7 +388,7 @@ const AddOrder = () => {
                         className="block w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         rows="3"
                         required
-                        placeholder="rue ali khamessi, immeuble no. 5, etc."
+                        placeholder="شارع علي خميسي، المبنى رقم 5، إلخ"
                       />
                     </div>
                   </>
@@ -398,7 +397,7 @@ const AddOrder = () => {
                 {/* Payment Method */}
                 <div>
                   <label htmlFor="paymentMethod" className="block text-sm font-medium text-gray-700 mb-1">
-                    Méthode de Paiement
+                    طريقة الدفع
                   </label>
                   <select
                     id="paymentMethod"
@@ -408,9 +407,9 @@ const AddOrder = () => {
                     className="block w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     required
                   >
-                    <option value="">Sélectionnez une option</option>
-                    <option value="à livraison">À livraison</option>
-                    <option value="en ligne">En ligne</option>
+                    <option value="">اختر طريقة الدفع</option>
+                    <option value="à livraison">الدفع عند الاستلام</option>
+                    <option value="en ligne">الدفع الإلكتروني</option>
                   </select>
                 </div>
               </div>
@@ -431,10 +430,10 @@ const AddOrder = () => {
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
-                    Traitement...
+                    جاري المعالجة...
                   </span>
                 ) : (
-                  'Confirmer la Commande'
+                  'تأكيد الطلب'
                 )}
               </button>
 

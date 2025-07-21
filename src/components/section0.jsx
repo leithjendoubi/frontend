@@ -43,14 +43,14 @@ const Section0 = () => {
       />
 
       {/* Overlay content */}
-      <div className="overlay-card">
-        <h1 className="firma-title">Firma</h1>
-        <p className="firma-subtitle">Hello, welcome to Firma!</p>
-        <p className="firma-des">
-          Firma is the number one site and the first to make deals in the farming business.
+      <div className="overlay-card arabic-text">
+        <h1 className="firma-title arabic-text">فيرمة</h1>
+        <p className="firma-subtitle arabic-text ">مرحبا بيك في فيرمة !</p>
+        <p className="firma-des arabic-text">
+          أول مسلك تجاري إلكتروني للمنتجات الفلاحية موافق لمعايير الدولة التونسية
         </p>
         <button className="start-btn" onClick={() => navigate('/login')}>
-          Start
+          هيا نبداو
         </button>
       </div>
     </section>
