@@ -101,7 +101,7 @@ const Stockeur = () => {
   const handleOpenDialog = () => setOpenDialog(true);
   const handleCloseDialog = () => setOpenDialog(false);
 
-  const CreateEquip = React.lazy(() => import('C:/Users/leith/Desktop/firma/client/src/pages/stock/createequip.jsx'));
+  const CreateEquip = React.lazy(() => import('./createequip.jsx'));
 
   if (loading) {
     return (
